@@ -1,89 +1,5 @@
 import { globalEventBus } from '../../core/eventBus.js';
 
-/**
- * 火山引擎 RTC Token 纯前端生成器 (仅供纯前端 Demo 测试使用)
- * 警告: 生产环境严禁将 AppKey 暴露在前端，必须由服务端生成 Token
- */
-class VolcTokenGenerator {
-    static VERSION = '001';
-    
-    static async generateToken(appId, appKey, roomId, userId, expireInSeconds = 3600) {
-        const issuedAt = Math.floor(Date.now() / 1000);
-        const expireAt = issuedAt + expireInSeconds;
-        const nonce = Math.floor(Math.random() * 0xffffffff);
-
-        // 权限 Map (0: 发布流, 1: 订阅流)
-        const privileges = { 0: expireAt, 1: 0 }; 
-
-        // 序列化消息体
-        const msgBuffer = this.packMessage({ nonce, issuedAt, expireAt, roomId, userId, privileges });
-
-        // 计算 HMAC-SHA256 签名
-        const signature = await this.hmacSha256(appKey, msgBuffer);
-
-        // 组装最终包
-        const finalBuffer = this.packFinal(msgBuffer, signature);
-
-        // Base64 编码
-        const base64Content = btoa(String.fromCharCode.apply(null, finalBuffer));
-        return this.VERSION + appId + base64Content;
-    }
-
-    static packMessage(data) {
-        const encoder = new TextEncoder();
-        const roomIdBuf = encoder.encode(data.roomId);
-        const userIdBuf = encoder.encode(data.userId);
-        
-        const privEntries = Object.entries(data.privileges);
-        const size = 4 + 4 + 4 + 2 + roomIdBuf.length + 2 + userIdBuf.length + 2 + (privEntries.length * 6);
-        
-        const buffer = new ArrayBuffer(size);
-        const view = new DataView(buffer);
-        let offset = 0;
-
-        view.setUint32(offset, data.nonce, true); offset += 4;
-        view.setUint32(offset, data.issuedAt, true); offset += 4;
-        view.setUint32(offset, data.expireAt, true); offset += 4;
-        
-        view.setUint16(offset, roomIdBuf.length, true); offset += 2;
-        new Uint8Array(buffer).set(roomIdBuf, offset); offset += roomIdBuf.length;
-        
-        view.setUint16(offset, userIdBuf.length, true); offset += 2;
-        new Uint8Array(buffer).set(userIdBuf, offset); offset += userIdBuf.length;
-
-        view.setUint16(offset, privEntries.length, true); offset += 2;
-        for (const [key, val] of privEntries) {
-            view.setUint16(offset, parseInt(key), true); offset += 2;
-            view.setUint32(offset, val, true); offset += 4;
-        }
-        return new Uint8Array(buffer);
-    }
-
-    static packFinal(msgBuf, sigBuf) {
-        const size = 2 + msgBuf.length + 2 + sigBuf.length;
-        const buffer = new ArrayBuffer(size);
-        const view = new DataView(buffer);
-        let offset = 0;
-
-        view.setUint16(offset, msgBuf.length, true); offset += 2;
-        new Uint8Array(buffer).set(msgBuf, offset); offset += msgBuf.length;
-
-        view.setUint16(offset, sigBuf.length, true); offset += 2;
-        new Uint8Array(buffer).set(sigBuf, offset); offset += sigBuf.length;
-
-        return new Uint8Array(buffer);
-    }
-
-    static async hmacSha256(key, data) {
-        const encoder = new TextEncoder();
-        const cryptoKey = await window.crypto.subtle.importKey(
-            'raw', encoder.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-        );
-        const sig = await window.crypto.subtle.sign('HMAC', cryptoKey, data);
-        return new Uint8Array(sig);
-    }
-}
-
 const DEFAULT_API_BASE_URL = 'http://127.0.0.1:8788';
 const DEFAULT_ROOM_ID = 'game-ai-room-demo';
 const DEFAULT_USER_ID_PREFIX = 'web_user';
@@ -287,23 +203,20 @@ async function postJson(url, body) {
 
 const apiService = {
     async getRtcAuthInfo(runtimeConfig, overrides = {}) {
-        console.log('[Mock API] 正在前端动态生成测试鉴权数据...');
-        
-        const appId = '69f2d45546d415017856bf02';
-        const appKey = 'd12dd782ba3449749e348736d31b523b';
         const roomId = overrides.roomId || runtimeConfig.roomId || 'ChatRoom01';
         const userId = overrides.userId || runtimeConfig.userId || ('user_' + Math.floor(Math.random() * 10000));
-        
-        // 使用纯前端算法实时生成 Token
-        const token = await VolcTokenGenerator.generateToken(appId, appKey, roomId, userId);
-        
-        return {
-            appId,
+        console.log('[RTC API] 正在通过服务端获取 RTC 鉴权数据...', {
+            roomId,
+            userId
+        });
+
+        return postJson(`${runtimeConfig.apiBaseUrl}/api/rtc/token`, {
             roomId,
             userId,
-            token,
-            expireAt: Date.now() + 3600 * 1000 // 假设1小时后过期
-        };
+            expireInSeconds: Number(
+                overrides.expireInSeconds || runtimeConfig.tokenExpireInSeconds || DEFAULT_TOKEN_EXPIRE_SECONDS
+            )
+        });
     },
 
     async startVoiceChat(runtimeConfig, session, overrides = {}) {
@@ -349,6 +262,9 @@ const apiService = {
         return postJson(`${runtimeConfig.apiBaseUrl}/api/rtc/voice-chat/stop`, {
             roomId: session.roomId,
             taskId: session.taskId
+        });
+        });
+    }
         });
     }
 };

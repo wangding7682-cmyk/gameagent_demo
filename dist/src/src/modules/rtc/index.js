@@ -283,23 +283,20 @@ async function postJson(url, body) {
 
 const apiService = {
     async getRtcAuthInfo(runtimeConfig, overrides = {}) {
-        console.log('[Mock API] 正在前端动态生成测试鉴权数据...');
-        
-        const appId = '69f2d45546d415017856bf02';
-        const appKey = 'd12dd782ba3449749e348736d31b523b';
         const roomId = overrides.roomId || runtimeConfig.roomId || 'ChatRoom01';
         const userId = overrides.userId || runtimeConfig.userId || ('user_' + Math.floor(Math.random() * 10000));
-        
-        // 使用纯前端算法实时生成 Token
-        const token = await VolcTokenGenerator.generateToken(appId, appKey, roomId, userId);
-        
-        return {
-            appId,
+        console.log('[RTC API] 正在通过服务端获取 RTC 鉴权数据...', {
+            roomId,
+            userId
+        });
+
+        return postJson(`${runtimeConfig.apiBaseUrl}/api/rtc/token`, {
             roomId,
             userId,
-            token,
-            expireAt: Date.now() + 3600 * 1000 // 假设1小时后过期
-        };
+            expireInSeconds: Number(
+                overrides.expireInSeconds || runtimeConfig.tokenExpireInSeconds || DEFAULT_TOKEN_EXPIRE_SECONDS
+            )
+        });
     },
 
     async startVoiceChat(runtimeConfig, session, overrides = {}) {
