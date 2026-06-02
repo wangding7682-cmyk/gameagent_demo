@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIGC Demo</title>
+    <link rel="stylesheet" href="./src/style.css">
+    
+    <script src="./vendor/live2d/pixi.min.js"></script>
+    <script src="./vendor/live2d/live2d.min.js"></script>
+    <script src="./vendor/live2d/cubism2.min.js"></script>
+    
+    <!-- 引入火山引擎 RTC Web SDK -->
+    <script src="./vendor/volcengine-rtc.min.js"></script>
+</head>
+<body>
+    <div id="app" class="app-shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Game AI Assistant</p>
+                <h1>游戏 AI 助手交互工作台 <button id="btn-readme" class="btn btn-ghost btn-readme" type="button">查看项目 README</button></h1>
+                <p class="topbar-guide">你可以直接对小G说：帮我生成亚索知识卡片 / 找一个盲僧打野教学视频 / 分析这段游戏视频。</p>
+            </div>
+            <div class="topbar-status">
+                <span class="status-chip" id="status-mode">当前模式：语音聊天</span>
+                <span class="status-chip" id="status-rtc">语音连接：未连接</span>
+                <span class="status-chip" id="status-video">游戏视频：未上传</span>
+            </div>
+        </header>
+
+        <main class="workspace-layout">
+            <aside class="side-panel mode-panel">
+                <div class="panel-card">
+                    <div class="panel-heading">
+                        <h2>音频输入相关算法设置</h2>
+                    </div>
+                    <p class="panel-tip">如果语音识别不稳定，可以在这里调整智能判停、声纹降噪和 AI 降噪；配置会同步到下一次开启智能体对话。</p>
+                    <div class="rtc-feature-list" id="rtc-feature-list">
+                        <div class="rtc-feature-item" data-feature-key="aiVad">
+                            <div class="rtc-feature-meta">
+                                <strong>智能语义判停</strong>
+                                <span>判断你是否说完，减少抢话或漏听</span>
+                            </div>
+                            <button class="feature-toggle" type="button" data-feature-toggle="aiVad" aria-pressed="false">
+                                <span class="feature-toggle-track"></span>
+                                <span class="feature-toggle-label">关闭</span>
+                            </button>
+                        </div>
+                        <div class="rtc-feature-item" data-feature-key="voicePrintRealtime">
+                            <div class="rtc-feature-meta">
+                                <strong>声纹降噪</strong>
+                                <span>识别你的声音，降低其他人的干扰</span>
+                            </div>
+                            <button class="feature-toggle" type="button" data-feature-toggle="voicePrintRealtime" aria-pressed="false">
+                                <span class="feature-toggle-track"></span>
+                                <span class="feature-toggle-label">关闭</span>
+                            </button>
+                        </div>
+                        <div class="rtc-feature-item" data-feature-key="aiDenoise">
+                            <div class="rtc-feature-meta">
+                                <strong>AI 降噪</strong>
+                                <span>降低键盘、游戏声、环境声干扰</span>
+                            </div>
+                            <button class="feature-toggle" type="button" data-feature-toggle="aiDenoise" aria-pressed="false">
+                                <span class="feature-toggle-track"></span>
+                                <span class="feature-toggle-label">关闭</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="rtc-feature-status" id="rtc-feature-status">
+                        正在读取服务端 RTC 功能配置...
+                    </div>
+                </div>
+            </aside>
+
+            <section class="center-stage">
+                <div class="stage-card">
+                    <div class="stage-header">
+                        <div>
+                            <p class="panel-kicker">Workspace</p>
+                            <h2>游戏视频模拟区</h2>
+                        </div>
+                        <button id="btn-select-video" class="btn primary">选择本地视频</button>
+                    </div>
+
+                    <input id="video-file-input" type="file" accept="video/*" hidden>
+
+                    <div id="upload-dropzone" class="upload-dropzone">
+                        <div id="empty-state" class="empty-state">
+                            <div class="empty-icon">▶</div>
+                            <h3>上传游戏视频，模拟边玩边问</h3>
+                            <p>上传后可以选择语音聊天或屏幕共享，让小G结合画面理解你的问题。</p>
+                            <button id="btn-select-video-inline" class="btn primary">上传本地视频</button>
+                        </div>
+
+                        <div id="video-player-shell" class="video-player-shell is-hidden">
+                            <video id="local-video" class="local-video" preload="metadata"></video>
+                            <div class="video-meta">
+                                <div>
+                                    <strong id="video-file-name">未选择视频</strong>
+                                    <p id="video-file-tip">上传后可在此处播放和预览。</p>
+                                </div>
+                                <button id="btn-reselect-video" class="btn">重新选择</button>
+                            </div>
+                            <div class="video-controls">
+                                <button id="btn-play-toggle" class="btn primary">播放</button>
+                                <div class="time-block">
+                                    <span id="video-current-time">00:00</span>
+                                    <input id="video-progress" type="range" min="0" max="100" value="0">
+                                    <span id="video-duration">00:00</span>
+                                </div>
+                                <div class="volume-block">
+                                    <button id="btn-mute-toggle" class="btn">静音</button>
+                                    <input id="video-volume" type="range" min="0" max="1" step="0.05" value="1">
+                                </div>
+                                <button id="btn-fullscreen" class="btn">全屏</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="side-panel ability-panel">
+                <div class="panel-card">
+                    <div class="panel-heading panel-heading-with-action">
+                        <div>
+                            <p class="panel-kicker">Ability</p>
+                            <h2>智能体回复模态示例</h2>
+                        </div>
+                        <div class="panel-action-menu">
+                        </div>
+                    </div>
+                    <p class="panel-tip">无论通过文本还是语音输入，只要提到知识卡片、精彩视频、战术建议等相关需求，小G会自动生成对应卡片或视频链接。</p>
+                    <div class="ability-example-list">
+                        <article class="ability-example-card">
+                            <strong>知识卡片</strong>
+                            <span>示例：帮我生成亚索对线知识卡片</span>
+                            <button id="btn-knowledge" class="btn" type="button">生成示例</button>
+                        </article>
+                        <article class="ability-example-card">
+                            <strong>精彩视频</strong>
+                            <span>示例：找一个盲僧打野教学视频</span>
+                            <button id="btn-video" class="btn" type="button">查找示例</button>
+                        </article>
+                        <article class="ability-example-card">
+                            <strong>战术建议</strong>
+                            <span>示例：帮我分析这波团战怎么打</span>
+                            <button id="btn-tts" class="btn" type="button">查看示例</button>
+                        </article>
+                    </div>
+                    <div class="stack-actions">
+                        <button id="btn-agent-logs" class="btn btn-ghost" type="button">多Agent编排任务日志</button>
+                    </div>
+                    <div class="ability-feed" id="ability-feed">
+                        <div class="ability-empty">交互动作记录的日志展示</div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <footer class="footer-bar">
+            <span>使用路径：先确认音频输入设置，可选上传游戏视频，再通过语音聊天、屏幕共享或文本聊天与小G实时对话。</span>
+        </footer>
+    </div>
+
+    <!-- 纸片人容器 -->
+    <div id="live2d-container" class="live2d-container is-mini">
+        <div id="live2d-stage" class="live2d-stage">
+            <canvas id="live2d-canvas"></canvas>
+            <div id="live2d-speech" class="live2d-speech is-hidden"></div>
+            <button id="live2d-toggle" class="live2d-toggle" type="button" aria-label="展开桌宠">展开</button>
+        </div>
+
+        <div class="live2d-action-layer">
+            <div class="live2d-particles" aria-hidden="true">
+                <span class="particle particle-1"></span>
+                <span class="particle particle-2"></span>
+                <span class="particle particle-3"></span>
+                <span class="particle particle-4"></span>
+                <span class="particle particle-5"></span>
+                <span class="particle particle-6"></span>
+            </div>
+            <div class="live2d-look-panel">
+                <div class="look-card">
+                    <div id="live2d-look-thumb" class="look-thumb">
+                        <span id="live2d-look-thumb-text" class="look-thumb-text">长发</span>
+                    </div>
+                    <div class="look-info">
+                        <p class="look-title">当前造型</p>
+                        <strong id="live2d-look-name" class="look-name">长发</strong>
+                        <span id="live2d-expression-name" class="look-expression">默认表情</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="live2d-action-buttons">
+                <button id="btn-change-look" class="look-btn beam-btn beam-look" type="button">造型</button>
+                <div id="look-options" class="look-options" aria-hidden="true"></div>
+                <button id="menu-pet" class="menu-item beam-btn beam-pet" type="button">语音聊天</button>
+                <button id="menu-chat" class="menu-item beam-btn beam-chat" type="button">文本聊天</button>
+                <button id="menu-video" class="menu-item beam-btn beam-video" type="button">屏幕共享</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文本聊天窗口 -->
+    <div id="chat-window" class="modal-window hidden">
+        <div class="modal-header">
+            <span class="modal-title">💬 文本聊天</span>
+            <div class="modal-actions">
+                <button class="window-btn minimize-btn" id="minimize-chat" type="button" aria-label="最小化文本聊天">-</button>
+                <button class="window-btn close-btn" id="close-chat" type="button" aria-label="关闭文本聊天">×</button>
+            </div>
+        </div>
+        <div class="modal-body chat-body" id="chat-messages">
+            <div class="chat-message system">你好，我已经准备好了。你可以问我游戏攻略，或者先上传一段游戏视频。</div>
+        </div>
+        <div class="modal-footer">
+            <input type="text" id="chat-input" placeholder="试试：生成亚索知识卡片 / 找盲僧打野教学视频">
+            <button id="chat-send" class="btn primary">发送</button>
+        </div>
+    </div>
+
+    <!-- 视频通话窗口 -->
+    <div id="video-window" class="modal-window hidden">
+        <div class="modal-header">
+            <span class="modal-title">🖥️ 屏幕共享</span>
+            <div class="modal-actions">
+                <button class="window-btn minimize-btn" id="minimize-video" type="button" aria-label="最小化屏幕共享">-</button>
+                <button class="window-btn close-btn" id="close-video" type="button" aria-label="关闭屏幕共享">×</button>
+            </div>
+        </div>
+        <div class="modal-body video-body">
+            <div class="video-panel">
+                <div class="video-placeholder" id="rtc-video-placeholder">
+                    <div class="avatar-header">
+                        <div class="avatar-ring">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4&clothingColor=c0aede&hairColor=4a2c2a&skinColor=ffdbac&topType=LongHairNotTooLong" alt="AI Assistant" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />
+                        </div>
+                        <h3 id="rtc-voice-title">语音聊天中</h3>
+                    </div>
+                    <div id="rtc-voice-subtitle" class="rtc-voice-subtitle-log" data-placeholder="等待你说话或输入消息"></div>
+                    <div class="rtc-voice-status" id="rtc-voice-status">
+                        <span class="rtc-status-dot" id="rtc-status-dot" aria-hidden="true"></span>
+                        <span id="rtc-status-text">连接中</span>
+                        <span class="rtc-status-separator" aria-hidden="true">·</span>
+                        <span id="rtc-call-duration">00:00</span>
+                    </div>
+                    <div id="rtc-screen-call-time" class="rtc-screen-call-time">通话时间 00:00</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <input type="text" id="rtc-text-input" placeholder="输入消息，或试试：找精彩视频 / 分析当前视频">
+            <button id="rtc-send-text" class="btn primary">发送</button>
+            <button id="rtc-interrupt" class="btn">停止小G说话</button>
+            <button id="rtc-share-screen" class="btn">共享屏幕</button>
+            <button id="video-hangup" class="btn danger">挂断</button>
+        </div>
+    </div>
+
+    <!-- README 文档弹窗 -->
+    <div id="readme-modal" class="readme-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="readme-title">
+        <div class="readme-dialog">
+            <div class="readme-header">
+                <h2 id="readme-title">项目 README</h2>
+                <button id="btn-readme-close" class="btn" type="button">关闭</button>
+            </div>
+            <div id="readme-body" class="readme-body">
+                <div class="readme-loading">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent 编排日志弹窗 -->
+    <div id="agent-log-modal" class="agent-log-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="agent-log-title">
+        <div class="agent-log-dialog">
+            <div class="agent-log-header">
+                <div>
+                    <h2 id="agent-log-title">多Agent编排任务日志</h2>
+                </div>
+                <div class="agent-log-actions">
+                    <input id="agent-log-keyword" class="agent-log-input" type="search" placeholder="搜索问题、意图或任务结果">
+                    <button id="btn-agent-logs-refresh" class="btn primary" type="button">刷新</button>
+                    <button id="btn-agent-logs-close" class="btn" type="button">关闭</button>
+                </div>
+            </div>
+            <div id="agent-log-status" class="agent-log-status">点击刷新查看最近多Agent任务日志。</div>
+            <div id="agent-log-list" class="agent-log-list"></div>
+        </div>
+    </div>
+
+    <script>
+        window.__GAME_AI_RUNTIME__ = {
+            dataMode: 'cloud',
+            knowledgeProvider: 'volc',
+            memoryMode: 'mock',
+            memoryProvider: 'mock',
+            apiBaseUrl: window.location.origin,
+            allowKnowledgeFallback: true,
+            allowMemoryFallback: true,
+            sessionSyncToServer: true,
+            rtc: {
+                roomId: 'ChatRoom01',
+                userId: 'Huoshan01',
+                userIdPrefix: 'huoshan',
+                tokenExpireInSeconds: 86400,
+                businessId: '',
+                agentUserId: 'ChatBot01',
+                welcomeMessage: '你好，我是小G',
+                defaultInterruptMode: 1,
+                // 敏感的 ASR/TTS/LLM 配置已经下沉到服务端默认文件，不再放在前端
+                voiceChatConfig: null,
+                joinOptions: {
+                    isAutoPublish: true,
+                    isAutoSubscribeAudio: true,
+                    isAutoSubscribeVideo: false,
+                    roomProfileType: 0
+                }
+            }
+        };
+    </script>
+
+    <!-- 作为模块引入 main.js -->
+    <script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "total": 9,
+  "pass": 9,
+  "fail": 0,
+  "pass_rate": 100,
+  "avg_overall_score": 7,
+  "dimension_averages": {
+    "tactical_quality": 7,
+    "structural_compliance": 7,
+    "tone_authenticity": 7,
+    "emotional_boundary": 7,
+    "conciseness": 7,
+    "multi_modal_fit": 7
+  },
+  "low_score_cases": [],
+  "risk_tag_summary": {
+    "mock": 9
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "volc-aigc-rtc-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Node.js business server for Volcengine AIGC-RTC token and voice chat APIs",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "dev": "node --watch ./src/server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

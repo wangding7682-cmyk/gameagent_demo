@@ -1,0 +1,11 @@
+{
+  "name": "gameagent-demo-deploy",
+  "private": true,
+  "scripts": {
+    "start": "node ./volc-aigc-rtc-server/src/server.js",
+    "dev": "node --watch ./volc-aigc-rtc-server/src/server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

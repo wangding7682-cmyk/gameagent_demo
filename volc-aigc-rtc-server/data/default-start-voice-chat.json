@@ -1,0 +1,66 @@
+{
+  "AgentConfig": {
+    "UserId": "ChatBot01",
+    "WelcomeMessage": "你好，我是小G",
+    "EnableConversationStateCallback": true,
+    "VoicePrint": {
+      "Mode": 1,
+      "EnableSV": true,
+      "VoiceDuration": 10
+    }
+  },
+  "Config": {
+    "ASRConfig": {
+      "Provider": "volcano",
+      "ProviderParams": {
+        "Mode": "bigmodel",
+        "AppId": "4774020236",
+        "Cluster": "volcengine_streaming_common",
+        "VolcanoASRParameters": "{\"request\":{\"vad_segment_duration\":3000,\"end_window_size\":800,\"enable_ai_vad\":true}}"
+      }
+    },
+    "TTSConfig": {
+      "Provider": "volcano_bidirection",
+      "IgnoreBracketText": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "ProviderParams": {
+        "app": {
+          "appid": "4774020236",
+          "token": "jISalBwVV7s3hWIeYxDeI4efm5OuDamp"
+        },
+        "audio": {
+          "voice_type": "zh_female_wanwanxiaohe_moon_bigtts",
+          "speech_rate": 31
+        },
+        "ResourceId": "volc.service_type.10029"
+      }
+    },
+    "LLMConfig": {
+      "Mode": "ArkV3",
+      "EndPointId": "ep-20260430103756-7wgz4",
+      "SystemMessages": [
+        "placeholder_overridden_by_applyRtcMemoryContext"
+      ],
+      "HistoryLength": 3,
+      "VisionConfig": {
+        "Enable": true,
+        "SnapshotConfig": {
+          "StreamType": 1,
+          "Interval": 5000,
+          "Height": 720
+        }
+      },
+      "ThinkingType": "disabled"
+    },
+    "SubtitleConfig": {
+      "DisableRTSSubtitle": false,
+      "SubtitleMode": 1
+    },
+    "InterruptMode": 0
+  }
+}

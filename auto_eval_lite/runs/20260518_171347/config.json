@@ -1,0 +1,11 @@
+{
+  "run_id": "20260518_171347",
+  "timestamp": "2026-05-18T09:13:47.669Z",
+  "cases_path": "data/cases.jsonl",
+  "predictions_path": "(auto-generated)",
+  "mode": "mock",
+  "judge_model": "ep-20260430103756-7wgz4",
+  "total_cases": 9,
+  "judged_count": 9,
+  "failure_count": 0
+}

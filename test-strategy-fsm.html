@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategy 并发池 & FSM 状态流转测试</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;color:#e0e0e0;padding:20px}
+h1{font-size:18px;margin-bottom:12px;color:#7dd3fc}
+h2{font-size:14px;margin:16px 0 8px;color:#94a3b8}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.controls button{padding:8px 16px;border:1px solid #334155;border-radius:6px;background:#1e293b;color:#e0e0e0;cursor:pointer;font-size:13px;transition:all .15s}
+.controls button:hover{background:#334155;border-color:#7dd3fc}
+.controls button:disabled{opacity:.4;cursor:not-allowed}
+.controls input{padding:6px 10px;border:1px solid #334155;border-radius:6px;background:#1e293b;color:#e0e0e0;font-size:13px;width:80px}
+.controls label{font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:6px}
+.pool-status{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;display:flex;gap:20px;flex-wrap:wrap}
+.pool-status .metric{display:flex;flex-direction:column;gap:2px}
+.pool-status .metric .val{font-size:20px;font-weight:700;color:#7dd3fc}
+.pool-status .metric .lbl{color:#64748b;font-size:11px}
+.summary-bar{display:flex;gap:18px;margin-bottom:14px;font-size:12px;color:#94a3b8;flex-wrap:wrap}
+.summary-bar .count{font-weight:700;color:#7dd3fc;min-width:24px;text-align:center}
+.task-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:16px}
+.task-card{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;font-size:12px;position:relative;transition:border-color .2s}
+.task-card[data-fsm="BRANCH_EXEC"]{border-color:#facc15}
+.task-card[data-fsm="BRANCH_QUEUED"]{border-color:#f97316}
+.task-card[data-fsm="DONE"]{border-color:#4ade80}
+.task-card[data-fsm="DEGRADED"]{border-color:#fb923c}
+.task-card[data-fsm="FAILED"]{border-color:#f87171}
+.task-card[data-fsm="ASSET_READY"]{border-color:#a78bfa}
+.task-card .task-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.task-card .task-id{color:#7dd3fc;font-family:monospace;font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-card .fsm-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.fsm-CREATED{background:#334155;color:#94a3b8}
+.fsm-CONTEXT_LOADING{background:#1e3a5f;color:#7dd3fc}
+.fsm-ROUTING{background:#1e3a5f;color:#7dd3fc}
+.fsm-MAIN_REPLIED{background:#1e3a5f;color:#7dd3fc}
+.fsm-BRANCH_QUEUED{background:#7c2d12;color:#fb923c}
+.fsm-BRANCH_EXEC{background:#713f12;color:#facc15}
+.fsm-PARTIAL_STREAMING{background:#312e81;color:#a78bfa}
+.fsm-ASSET_READY{background:#312e81;color:#a78bfa}
+.fsm-DONE{background:#14532d;color:#4ade80}
+.fsm-DEGRADED{background:#7c2d12;color:#fb923c}
+.fsm-FAILED{background:#7f1d1d;color:#f87171}
+.fsm-CANCELLED{background:#334155;color:#64748b}
+.pri-high{color:#facc15;font-weight:700}
+.pri-normal{color:#94a3b8}
+.pri-low{color:#64748b}
+.task-card .query{color:#cbd5e1;margin-bottom:4px;font-size:13px}
+.task-card .meta-row{color:#64748b;font-size:11px;display:flex;gap:10px;margin-bottom:4px}
+.task-card .timeline{margin-top:6px;border-top:1px solid #334155;padding-top:6px;font-size:10px;color:#64748b;max-height:120px;overflow-y:auto}
+.task-card .timeline div{padding:1px 0;display:flex;justify-content:space-between}
+.task-card .timeline .tl-state{color:#94a3b8}
+.task-card .timeline .tl-time{color:#475569}
+.log-panel{background:#0c0e14;border:1px solid #334155;border-radius:8px;padding:12px;font-family:'Cascadia Code',Consolas,monospace;font-size:11px;max-height:340px;overflow-y:auto;color:#94a3b8;line-height:1.6}
+.log-panel .log-entry{padding:2px 0;border-bottom:1px solid #1e293b}
+.log-panel .log-time{color:#64748b}
+.log-panel .log-event{color:#7dd3fc}
+.log-panel .log-data{color:#64748b}
+</style>
+</head>
+<body>
+
+<h1>Strategy 并发池 &amp; FSM 状态流转测试</h1>
+
+<div class="controls">
+  <button id="btnSend1">发送 1 个 strategy</button>
+  <button id="btnSendHigh1">⚡ 发送 1 个高优 strategy</button>
+  <button id="btnSend3">连续 3 个 strategy</button>
+  <button id="btnSend5">连续 5 个 strategy</button>
+  <button id="btnSendMixed">混合 3s+2v</button>
+  <span style="width:1px;background:#334155;margin:0 6px"></span>
+  <button id="btnUrgent" title="含紧急关键词，自动识别为 high">🔥 紧急场景</button>
+  <button id="btnChill" title="含延后关键词，自动识别为 low">😌 不急场景</button>
+  <button id="btnClear">清空面板</button>
+  <label>延迟(ms) <input id="inputDelay" type="number" value="6000" min="0" step="1000"></label>
+  <label>优先级
+    <select id="selectPriority" style="padding:4px;border-radius:4px;background:#1e293b;color:#e0e0e0;border:1px solid #334155;font-size:12px;">
+      <option value="normal">normal（普通）</option>
+      <option value="high">high（紧急插队）</option>
+      <option value="low">low（低优先）</option>
+    </select>
+  </label>
+  <label><input id="chkAutoScroll" type="checkbox" checked> 自动滚动</label>
+</div>
+
+<div class="pool-status" id="poolStatus">
+  <div class="metric"><span class="val" id="mRunningS">0</span><span class="lbl">Strategy 运行中</span></div>
+  <div class="metric"><span class="val" id="mQueuedS">0</span><span class="lbl">Strategy 排队中</span></div>
+  <div class="metric"><span class="val" id="mRunningV">0</span><span class="lbl">Video 运行中</span></div>
+  <div class="metric"><span class="val" id="mQueuedV">0</span><span class="lbl">Video 排队中</span></div>
+  <div class="metric"><span class="val" id="mTotal">0</span><span class="lbl">总请求数</span></div>
+  <div class="metric"><span class="val" id="mActive">0</span><span class="lbl">活跃任务</span></div>
+</div>
+
+<div class="summary-bar" id="summaryBar">
+  <span>已创建: <span class="count" id="cCreated">0</span></span>
+  <span>已完成(DONE): <span class="count" id="cDone">0</span></span>
+  <span>降级(DEGRADED): <span class="count" id="cDegraded">0</span></span>
+  <span>失败(FAILED): <span class="count" id="cFailed">0</span></span>
+  <span>排队过: <span class="count" id="cQueued">0</span></span>
+  <span>SSE 事件总数: <span class="count" id="cEvents">0</span></span>
+</div>
+
+<div class="task-grid" id="taskGrid"></div>
+
+<h2>事件日志 (实时)</h2>
+<div class="log-panel" id="logPanel"></div>
+
+<script>
+const API_BASE = 'http://127.0.0.1:8788';
+const STRATEGY_QUERIES = [
+  '盲僧前期入侵怎么防',
+  '亚索对线劫怎么打',
+  '打野节奏怎么控',
+  '团战站位怎么选',
+  '逆风局怎么翻盘',
+  '辅助游走时机',
+  '中单对线压制技巧',
+  '上单传送使用时机',
+];
+const VIDEO_QUERIES = [
+  '盲僧精彩操作集锦',
+  '亚索五杀视频',
+];
+const URGENT_QUERIES = [
+  '赶紧告诉我盲僧前期入侵怎么防',
+  '现在就要知道团战站位怎么选，来不及了',
+  '快点！对面打野来抓我了怎么处理',
+  '马上要打团了，辅助游走时机是什么',
+  '救命！血量很低了对线劫怎么打',
+];
+const CHILL_QUERIES = [
+  '待会再告诉我打野节奏怎么控',
+  '不急，先帮我整理一下逆风局翻盘思路',
+  '回头再看中单对线压制技巧',
+];
+
+const tasks = new Map();
+let globalEventCount = 0;
+let requestIndex = 0;
+
+const stats = {
+  created: 0,
+  done: 0,
+  degraded: 0,
+  failed: 0,
+  queued: 0,
+};
+
+function log(event, data) {
+  const panel = document.getElementById('logPanel');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  const time = new Date().toLocaleTimeString('zh-CN', {
+    hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3
+  });
+  const shortData = JSON.stringify(data).slice(0, 260);
+  entry.innerHTML =
+    '<span class="log-time">' + time + '</span> ' +
+    '<span class="log-event">[' + event + ']</span> ' +
+    '<span class="log-data">' + shortData + '</span>';
+  panel.appendChild(entry);
+  if (document.getElementById('chkAutoScroll').checked) panel.scrollTop = panel.scrollHeight;
+}
+
+function refreshAllPanels() {
+  document.getElementById('cCreated').textContent = stats.created;
+  document.getElementById('cDone').textContent = stats.done;
+  document.getElementById('cDegraded').textContent = stats.degraded;
+  document.getElementById('cFailed').textContent = stats.failed;
+  document.getElementById('cQueued').textContent = stats.queued;
+  document.getElementById('cEvents').textContent = globalEventCount;
+  document.getElementById('mTotal').textContent = requestIndex;
+  let active = 0;
+  for (const t of tasks.values()) {
+    const s = t.fsm_state || '';
+    if (!['DONE','DEGRADED','FAILED','CANCELLED'].includes(s)) active++;
+  }
+  document.getElementById('mActive').textContent = active;
+}
+
+function applyPoolSnapshot(data) {
+  if (!data) return;
+  document.getElementById('mRunningS').textContent = Array.isArray(data.running?.strategy)
+    ? data.running.strategy.length : (data.running?.strategy || 0);
+  document.getElementById('mQueuedS').textContent = data.queued_count?.strategy ?? 0;
+  document.getElementById('mRunningV').textContent = Array.isArray(data.running?.video)
+    ? data.running.video.length : (data.running?.video || 0);
+  document.getElementById('mQueuedV').textContent = data.queued_count?.video ?? 0;
+}
+
+function renderTaskCard(taskId) {
+  const task = tasks.get(taskId);
+  if (!task) return;
+  let card = document.getElementById('card-' + taskId);
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'card-' + taskId;
+    card.className = 'task-card';
+    document.getElementById('taskGrid').appendChild(card);
+  }
+  var fsm = task.fsm_state || 'CREATED';
+  card.dataset.fsm = fsm;
+  var cls = 'fsm-' + fsm;
+  var tlHtml = '';
+  var timeline = task.timeline || [];
+  for (var i = 0; i < timeline.length; i++) {
+    var t = timeline[i];
+    var timeStr = (t.at || '').split('T')[1] ? (t.at.split('T')[1].split('.')[0]) : '';
+    tlHtml += '<div><span class="tl-state">' + t.state + '</span><span class="tl-time">' + timeStr + '</span></div>';
+  }
+  var queueTag = task.queue_position > 0 ? ' / 排队#' + task.queue_position : '';
+  var modeTag = (task.popup_mode || '') !== 'loading' ? task.popup_mode : '';
+  var pri = task.priority || 'normal';
+  var priClass = 'pri-' + pri;
+  var priLabel = pri === 'high' ? '⚡' + pri : pri;
+
+  card.innerHTML =
+    '<div class="task-header">' +
+      '<span class="task-id" title="' + (task.task_id || '') + '">' + (task.task_id || '') + '</span>' +
+      '<span style="display:flex;gap:6px;align-items:center">' +
+        '<span class="fsm-badge ' + cls + '">' + fsm + '</span>' +
+        '<span class="' + priClass + '" style="font-size:10px">' + priLabel + '</span>' +
+      '</span>' +
+    '</div>' +
+    '<div class="query">' + escapeHtml(task.user_query || '') + '</div>' +
+    '<div class="meta-row">' +
+      '<span>' + (task.intent || '?') + (modeTag ? ' / ' + modeTag : '') + queueTag + '</span>' +
+      (task.title ? '<span>→ ' + escapeHtml(task.title) + '</span>' : '') +
+    '</div>' +
+    '<div class="timeline">' + tlHtml + '</div>';
+}
+
+function escapeHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function parseSseChunk(buffer, onEvent) {
+  var parts = buffer.split('\n\n');
+  var rest = parts.pop() || '';
+  for (var pi = 0; pi < parts.length; pi++) {
+    var lines = parts[pi].split(/\r?\n/);
+    var ev = 'message';
+    var dls = [];
+    for (var li = 0; li < lines.length; li++) {
+      if (lines[li].startsWith('event:')) ev = lines[li].slice(6).trim();
+      else if (lines[li].startsWith('data:')) dls.push(lines[li].slice(5).trim());
+    }
+    if (dls.length > 0) {
+      try { onEvent(ev, JSON.parse(dls.join('\n'))); } catch (_) {}
+    }
+  }
+  return rest;
+}
+
+function handleEvent(event, data) {
+  globalEventCount++;
+  log(event, data);
+
+  var tid = data.task_id || data.turn_id || null;
+
+  if (event === 'task_created' && tid) {
+    stats.created++;
+    tasks.set(tid, {
+      task_id: tid,
+      turn_id: data.turn_id || '',
+      fsm_state: data.fsm_state || 'CREATED',
+      intent: data.intent || 'unknown',
+      popup_mode: data.popup_mode || 'loading',
+      user_query: data.user_query || '',
+      queue_position: 0,
+      priority: data.priority || 'normal',
+      timeline: [{ state: data.fsm_state || 'CREATED', at: new Date().toISOString() }],
+    });
+    renderTaskCard(tid);
+    refreshAllPanels();
+    return;
+  }
+
+  if (event === 'fsm_state' && tid) {
+    var task = tasks.get(tid);
+    if (task) {
+      task.fsm_state = data.fsm_state;
+      if (data.intent) task.intent = data.intent;
+      if (data.popup_mode) task.popup_mode = data.popup_mode;
+      if (data.queue_position != null) task.queue_position = data.queue_position;
+      task.timeline.push({ state: data.fsm_state, at: new Date().toISOString() });
+      renderTaskCard(tid);
+    }
+
+    switch (data.fsm_state) {
+      case 'DONE': stats.done++; break;
+      case 'DEGRADED': stats.degraded++; break;
+      case 'FAILED': stats.failed++; break;
+    }
+    refreshAllPanels();
+    return;
+  }
+
+  if (event === 'task_queued' && tid) {
+    stats.queued++;
+    var tq = tasks.get(tid);
+    if (tq) {
+      tq.queue_position = data.queue_position || tq.queue_position;
+      if (data.priority) tq.priority = data.priority;
+      renderTaskCard(tid);
+    }
+    refreshAllPanels();
+    return;
+  }
+
+  if (event === 'pool_changed') {
+    applyPoolSnapshot(data);
+    refreshAllPanels();
+    return;
+  }
+
+  if ((event === 'strategy_ready' || event === 'card_ready') && tid) {
+    var st = tasks.get(tid);
+    if (st) {
+      st.title = data.title || '';
+      st.details_count = Array.isArray(data.details) ? data.details.length : 0;
+      st.needs_image = data.needs_image === true;
+      renderTaskCard(tid);
+    }
+    refreshAllPanels();
+    return;
+  }
+
+  if (event === 'video_ready' && tid) {
+    var vt = tasks.get(tid);
+    if (vt) {
+      vt.title = data.title || '';
+      vt.video_url = data.videoUrl || '';
+      renderTaskCard(tid);
+    }
+    refreshAllPanels();
+    return;
+  }
+
+  if (event === 'error' && tid) {
+    var et = tasks.get(tid);
+    if (et) {
+      et.fsm_state = 'FAILED';
+      et.timeline.push({ state: 'FAILED', at: new Date().toISOString() });
+      renderTaskCard(tid);
+    }
+    stats.failed++;
+    refreshAllPanels();
+    return;
+  }
+
+  if (event === 'done' || event === 'main_reply' || event === 'voice_delta') {
+    refreshAllPanels();
+  }
+}
+
+async function sendRequest(query, delayMs, priority) {
+  requestIndex++;
+  var rid = requestIndex;
+  var pri = priority || document.getElementById('selectPriority').value || 'normal';
+  var body = {
+    text: query,
+    source: 'test_concurrency',
+    sessionId: 'test_fsm_' + Date.now(),
+    debugBranchDelayMs: delayMs || 0,
+    priority: pri,
+  };
+  log('send_request', { index: rid, query: query, delay: delayMs, priority: pri });
+
+  try {
+    var resp = await fetch(API_BASE + '/api/agent/orchestrate/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok || !resp.body) {
+      log('http_error', { index: rid, query: query, status: resp.status, statusText: resp.statusText });
+      return;
+    }
+
+    var reader = resp.body.getReader();
+    var decoder = new TextDecoder();
+    var buf = '';
+
+    while (true) {
+      var result = await reader.read();
+      if (result.done) break;
+      buf += decoder.decode(result.value, { stream: true });
+      buf = parseSseChunk(buf, function (ev, d) { handleEvent(ev, d); });
+    }
+
+    if (buf.trim()) {
+      parseSseChunk(buf + '\n\n', function (ev, d) { handleEvent(ev, d); });
+    }
+
+    log('stream_end', { index: rid, query: query, total_events: globalEventCount });
+  } catch (err) {
+    log('fetch_error', { index: rid, query: query, message: err.message });
+  }
+}
+
+function getDelay() {
+  return Math.max(0, parseInt(document.getElementById('inputDelay').value) || 0);
+}
+
+function pickQuery(type) {
+  var pool = type === 'video' ? VIDEO_QUERIES : STRATEGY_QUERIES;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+document.getElementById('btnSend1').addEventListener('click', function () {
+  sendRequest(pickQuery('strategy'), getDelay());
+});
+
+document.getElementById('btnSendHigh1').addEventListener('click', function () {
+  sendRequest(pickQuery('strategy'), getDelay(), 'high');
+});
+
+document.getElementById('btnUrgent').addEventListener('click', function () {
+  var q = URGENT_QUERIES[Math.floor(Math.random() * URGENT_QUERIES.length)];
+  sendRequest(q, getDelay());
+});
+
+document.getElementById('btnChill').addEventListener('click', function () {
+  var q = CHILL_QUERIES[Math.floor(Math.random() * CHILL_QUERIES.length)];
+  sendRequest(q, getDelay());
+});
+
+document.getElementById('btnSend3').addEventListener('click', function () {
+  var d = getDelay();
+  for (var i = 0; i < 3; i++) {
+    (function (idx) { setTimeout(function () { sendRequest(pickQuery('strategy'), d); }, idx * 200); })(i);
+  }
+});
+
+document.getElementById('btnSend5').addEventListener('click', function () {
+  var d = getDelay();
+  for (var i = 0; i < 5; i++) {
+    (function (idx) { setTimeout(function () { sendRequest(pickQuery('strategy'), d); }, idx * 200); })(i);
+  }
+});
+
+document.getElementById('btnSendMixed').addEventListener('click', function () {
+  var d = getDelay();
+  for (var i = 0; i < 3; i++) {
+    (function (idx) { setTimeout(function () { sendRequest(pickQuery('strategy'), d); }, idx * 200); })(i);
+  }
+  for (var j = 0; j < 2; j++) {
+    (function (idx) { setTimeout(function () { sendRequest(pickQuery('video'), d); }, 600 + idx * 200); })(j);
+  }
+});
+
+document.getElementById('btnClear').addEventListener('click', function () {
+  tasks.clear();
+  stats.created = 0;
+  stats.done = 0;
+  stats.degraded = 0;
+  stats.failed = 0;
+  stats.queued = 0;
+  globalEventCount = 0;
+  requestIndex = 0;
+  document.getElementById('taskGrid').innerHTML = '';
+  document.getElementById('logPanel').innerHTML = '';
+  applyPoolSnapshot({});
+  refreshAllPanels();
+});
+</script>
+</body>
+</html>
