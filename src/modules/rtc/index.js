@@ -263,9 +263,6 @@ const apiService = {
             roomId: session.roomId,
             taskId: session.taskId
         });
-        });
-    }
-        });
     }
 };
 
