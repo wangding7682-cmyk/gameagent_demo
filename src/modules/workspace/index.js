@@ -141,7 +141,20 @@ export class WorkspaceModule {
         this.fullscreenButton = document.getElementById('btn-fullscreen');
         this.abilityFeed = document.getElementById('ability-feed');
 
+        // 新增：视频工作区模式切换和屏幕共享
+        this.stageModeSwitchButtons = Array.from(document.querySelectorAll('.stage-mode-switch .mode-btn'));
+        this.pushLocalVideoButton = document.getElementById('btn-push-local-video');
+        this.screenShareShell = document.getElementById('screen-share-shell');
+        this.screenShareEmpty = document.getElementById('screen-share-empty');
+        this.screenShareActive = document.getElementById('screen-share-active');
+        this.screenSharePreview = document.getElementById('screen-share-preview');
+        this.screenShareStatus = document.getElementById('screen-share-status');
+        this.startScreenShareButton = document.getElementById('btn-start-screen-share');
+        this.stopScreenShareButton = document.getElementById('btn-stop-screen-share');
+
         this.currentVideoUrl = '';
+        this.currentStageMode = 'local'; // 'local' | 'screen'
+        this.currentScreenStream = null;
         this.modeDescriptions = {
             pet: '开启语音聊天后，会拉起通话窗口，你可以直接对小G说话或输入文字。',
             text_chat: '打开文本聊天窗口，适合攻略问答、闲聊与知识查询。',
@@ -156,6 +169,7 @@ export class WorkspaceModule {
         this.isScreenSharing = false;
         this.isScreenSharePending = false;
         this.screenSharePendingReason = '';
+        this.isRtcConnected = false;
         this.currentMode = 'pet';
         this.rtcFeatureState = null;
         this.isRtcFeatureSyncing = false;
@@ -167,9 +181,10 @@ export class WorkspaceModule {
         this.bindRtcFeatureControls();
         this.bindAbilityButtons();
         this.bindVideoWorkspace();
+        this.bindStageModeSwitch();
         this.bindEventBus();
         this.updateModeUI('pet');
-        this.updateVideoStatus('未上传');
+        this.updateVideoStatus('未选择');
         this.loadRtcFeatureState().catch((error) => {
             this.updateRtcFeatureStatus(error.message || '读取 RTC 功能配置失败', true);
         });
@@ -965,6 +980,77 @@ export class WorkspaceModule {
         }
     }
 
+    bindStageModeSwitch() {
+        const switchStageMode = (mode) => {
+            this.currentStageMode = mode;
+            this.stageModeSwitchButtons.forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.stageMode === mode);
+            });
+
+            if (mode === 'local') {
+                this.dropzone?.classList.remove('is-hidden');
+                this.screenShareShell?.classList.add('is-hidden');
+            } else {
+                this.dropzone?.classList.add('is-hidden');
+                this.screenShareShell?.classList.remove('is-hidden');
+            }
+        };
+
+        this.stageModeSwitchButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const targetMode = btn.dataset.stageMode;
+                if (!targetMode || targetMode === this.currentStageMode) return;
+
+                // 切换模式时，如果当前有 RTC 推流在运行，根据互斥逻辑停止它
+                if (this.isScreenSharing) {
+                    if (targetMode === 'local') {
+                        // 从屏幕共享切回本地视频：停止屏幕共享
+                        this.eventBus.emit('rtc_stop_game_screen_share');
+                    } else {
+                        // 从本地视频切到屏幕共享：停止本地视频推流
+                        this.eventBus.emit('rtc_stop_screen_share');
+                    }
+                }
+
+                switchStageMode(targetMode);
+            });
+        });
+
+        // 本地视频推送给智能体
+        // 等效于：点击 rtc-share-screen（共享屏幕） + 直接开始智能体音视频交互任务
+        this.pushLocalVideoButton?.addEventListener('click', () => {
+            if (this.isScreenSharing) {
+                this.eventBus.emit('rtc_stop_screen_share');
+            } else {
+                if (this.currentMode !== 'rtc') {
+                    this.app.switchMode('rtc');
+                }
+                this.eventBus.emit('rtc_start_screen_share');
+            }
+        });
+
+        // 屏幕共享按钮
+        // 等效于：在智能体侧打开《屏幕共享》选项 + 点击 rtc-share-game（共享游戏画面）
+        this.startScreenShareButton?.addEventListener('click', () => {
+            if (this.currentMode !== 'rtc') {
+                this.app.switchMode('rtc');
+            }
+            if (this.isRtcConnected) {
+                this.eventBus.emit('rtc_start_game_screen_share');
+            } else {
+                const onConnected = () => {
+                    this.eventBus.off('RTC_CONNECTED', onConnected);
+                    this.eventBus.emit('rtc_start_game_screen_share');
+                };
+                this.eventBus.on('RTC_CONNECTED', onConnected);
+            }
+        });
+
+        this.stopScreenShareButton?.addEventListener('click', () => {
+            this.eventBus.emit('rtc_stop_game_screen_share');
+        });
+    }
+
     bindVideoWorkspace() {
         const openPicker = () => {
             if (this.fileInput) {
@@ -1178,10 +1264,12 @@ export class WorkspaceModule {
         });
 
         this.eventBus.on('RTC_CONNECTED', () => {
+            this.isRtcConnected = true;
             this.statusRtc.textContent = '语音连接：已连接';
         });
 
         this.eventBus.on('RTC_DISCONNECTED', () => {
+            this.isRtcConnected = false;
             this.statusRtc.textContent = '语音连接：未连接';
         });
 
@@ -1261,6 +1349,30 @@ export class WorkspaceModule {
                 this.rtcShareScreenBtn.textContent = '停止共享';
                 this.rtcShareScreenBtn.classList.add('danger');
             }
+
+            if (payload?.sourceType === 'captureStream' || payload?.sourceType === 'srcObject') {
+                if (this.pushLocalVideoButton) {
+                    this.pushLocalVideoButton.textContent = '停止推送';
+                    this.pushLocalVideoButton.classList.add('danger');
+                    this.pushLocalVideoButton.classList.remove('primary');
+                    this.pushLocalVideoButton.disabled = false;
+                }
+                this.updateVideoStatus('本地视频推送中');
+            } else if (payload?.sourceType === 'display') {
+                if (this.pushLocalVideoButton) {
+                    this.pushLocalVideoButton.textContent = '推送给智能体';
+                    this.pushLocalVideoButton.classList.remove('danger');
+                    this.pushLocalVideoButton.classList.add('primary');
+                    this.pushLocalVideoButton.disabled = false;
+                }
+                this.screenShareEmpty?.classList.add('is-hidden');
+                this.screenShareActive?.classList.remove('is-hidden');
+                if (this.screenSharePreview && payload?.stream) {
+                    this.screenSharePreview.srcObject = payload.stream;
+                }
+                this.updateVideoStatus('屏幕共享中');
+            }
+
             writeWorkspaceDebugLog('share.started', {
                 state: {
                     currentMode: this.currentMode,
@@ -1281,6 +1393,18 @@ export class WorkspaceModule {
                 this.rtcShareScreenBtn.textContent = '共享屏幕';
                 this.rtcShareScreenBtn.classList.remove('danger');
             }
+            if (this.pushLocalVideoButton) {
+                this.pushLocalVideoButton.textContent = '推送给智能体';
+                this.pushLocalVideoButton.classList.remove('danger');
+                this.pushLocalVideoButton.classList.add('primary');
+                this.pushLocalVideoButton.disabled = false;
+            }
+            this.screenShareEmpty?.classList.remove('is-hidden');
+            this.screenShareActive?.classList.add('is-hidden');
+            if (this.screenSharePreview) {
+                this.screenSharePreview.srcObject = null;
+            }
+            this.updateVideoStatus('未选择');
             writeWorkspaceDebugLog('share.stopped', {
                 state: {
                     currentMode: this.currentMode,
@@ -1301,6 +1425,18 @@ export class WorkspaceModule {
                 this.rtcShareScreenBtn.textContent = '共享屏幕';
                 this.rtcShareScreenBtn.classList.remove('danger');
             }
+            if (this.pushLocalVideoButton) {
+                this.pushLocalVideoButton.textContent = '推送给智能体';
+                this.pushLocalVideoButton.classList.remove('danger');
+                this.pushLocalVideoButton.classList.add('primary');
+                this.pushLocalVideoButton.disabled = false;
+            }
+            this.screenShareEmpty?.classList.remove('is-hidden');
+            this.screenShareActive?.classList.add('is-hidden');
+            if (this.screenSharePreview) {
+                this.screenSharePreview.srcObject = null;
+            }
+            this.updateVideoStatus('未选择');
             writeWorkspaceDebugLog('share.failed', {
                 state: {
                     currentMode: this.currentMode,
@@ -2033,7 +2169,7 @@ export class WorkspaceModule {
     }
 
     updateVideoStatus(statusText) {
-        this.statusVideo.textContent = `游戏视频：${statusText}`;
+        this.statusVideo.textContent = `视频源：${statusText}`;
     }
 
     updateMuteText() {

@@ -516,6 +516,7 @@ export class AgentModule {
         this._forcePreviewNextCard = false;
         const cardId = data.task_id || `${data.turn_id || Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
         const needsImage = data.needs_image === true && Boolean(prompt);
+        const isDemoButton = data.source === 'demo_button';
         const summary = data.task_id ? (this._strategySummaryByTaskId.get(data.task_id) || '') : '';
         if (data.task_id) {
             this._strategySummaryByTaskId.delete(data.task_id);
@@ -549,6 +550,11 @@ export class AgentModule {
 
         const emitCard = (finalImgUrl, state = {}) => {
             clearTimeout(timeoutId);
+            // demo 按钮场景：图片失败/超时直接退化为纯文字卡片，不展示「图片未就绪」警告
+            const degradeToText = isDemoButton && (state.timeout === true || state.imageFailed === true) && !finalImgUrl;
+            if (degradeToText) {
+                console.log('[AgentModule] demo_button 图片生成失败，退化为纯文字卡片', { cardId, reason: state.timeout ? 'timeout' : 'imageFailed' });
+            }
             this.eventBus.emit('TRIGGER_KNOWLEDGE', {
                 title: data.title || '战术策略建议',
                 content: details.join(' / '),
@@ -558,8 +564,8 @@ export class AgentModule {
                 forcePreview,
                 imgUrl: finalImgUrl || '',
                 imageLoading: false,
-                timeout: state.timeout === true,
-                imageFailed: state.imageFailed === true,
+                timeout: degradeToText ? false : state.timeout === true,
+                imageFailed: degradeToText ? false : state.imageFailed === true,
                 cardId
             });
         };
@@ -589,6 +595,14 @@ export class AgentModule {
             console.warn('[AgentModule] 知识卡片图片生成失败:', error);
             if (!timeoutShown) {
                 emitCard('', { imageFailed: true });
+            }
+            if (isDemoButton) {
+                this.eventBus.emit('ABILITY_FEEDBACK', {
+                    source: 'agent',
+                    ability: '战术策略',
+                    text: `${data.title || '战术策略建议'}：${details.join(' / ')}`,
+                    task_id: data.task_id
+                });
             }
             return;
         }

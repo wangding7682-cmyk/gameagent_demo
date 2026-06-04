@@ -36,6 +36,30 @@ function logTaskFsm(message, data = {}) {
 export class TaskStateStore {
   constructor() {
     this.tasks = new Map();
+    // 单轮（turn）级别记忆缓存：同一轮对话内的记忆读取复用
+    this.turnCaches = new Map();
+  }
+
+  getTurnCache(turnId, key) {
+    if (!turnId) return undefined;
+    const turnMap = this.turnCaches.get(turnId);
+    if (!turnMap) return undefined;
+    const entry = turnMap.get(key);
+    if (!entry) return undefined;
+    return entry.data;
+  }
+
+  setTurnCache(turnId, key, data) {
+    if (!turnId) return;
+    if (!this.turnCaches.has(turnId)) {
+      this.turnCaches.set(turnId, new Map());
+    }
+    this.turnCaches.get(turnId).set(key, { data, at: nowIso() });
+  }
+
+  clearTurnCache(turnId) {
+    if (!turnId) return;
+    this.turnCaches.delete(turnId);
   }
 
   createTask({ turnId, sessionId, userQuery, source, intent = 'unknown' }) {

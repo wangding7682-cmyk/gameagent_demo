@@ -603,7 +603,7 @@ function upsertFunctionTool(existingTools = [], toolDefinition) {
   return nextTools;
 }
 
-async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig) {
+async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig, turnId = '') {
   const nextConfig = cloneJson(startVoiceChatConfig) || {};
   const nextLlmConfig = cloneJson(nextConfig.LLMConfig) || {};
   const playerUserId = resolvePlayerUserId(body, agentConfig);
@@ -612,7 +612,7 @@ async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig) {
   const retrievedKnowledge = resolveRetrievedKnowledge(body, currentSession);
   const profile = getRtcPersonaProfile(playerUserId);
   const rtcProfilePrompt = formatRtcPersonaProfileForPrompt(profile);
-  const longTermMemory = loadLongTermMemory(playerUserId);
+  const longTermMemory = loadLongTermMemory(playerUserId, turnId);
   const userProfile = loadUserProfile(playerUserId);
   const memoryLines = [];
   if (Array.isArray(longTermMemory.facts) && longTermMemory.facts.length > 0) {
@@ -631,7 +631,7 @@ async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig) {
         query: `${body.userQuery || body.text || ''} ${userProfile?.game_profile?.frequent_champions?.join(' ') || ''}`,
         user_id: playerUserId,
         limit: 5,
-      });
+      }, turnId);
       if (vikingResult && vikingResult.code === 0 && vikingResult.data) {
         const items = vikingResult.data.result_list || [];
         const relevantItems = items.filter((item) => typeof item.score === 'number' && item.score >= 0.15);
@@ -786,7 +786,7 @@ async function buildStartVoiceChatRequest(body) {
     };
   }
 
-  const memoryContext = await applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig);
+  const memoryContext = await applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig, body.turnId || '');
 
   return {
     payload: {

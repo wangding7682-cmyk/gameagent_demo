@@ -570,8 +570,8 @@ export class PetModule {
         if (!videoUrl && !linkUrl) {
             if (bodyEl) {
                 bodyEl.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <p style="color: rgba(255,255,255,0.6); margin: 0 0 12px; font-size: 13px;">未找到相关视频</p>
+                    <div class="video-empty">
+                        <p>未找到相关视频</p>
                     </div>
                 `;
             }
@@ -582,20 +582,20 @@ export class PetModule {
         const fallbackUrl = this._buildVideoFallbackUrl(title, summary);
         const isUnreliable = this._isUnreliableVideoDomain(finalLinkUrl);
         if (bodyEl) {
-            const summaryHtml = summary ? `<p style="color: rgba(255,255,255,0.85); line-height: 1.6; margin: 0 0 14px; font-size: 13px;">${summary}</p>` : '';
+            const summaryHtml = summary ? `<p class="video-summary">${summary}</p>` : '';
             if (isUnreliable && fallbackUrl) {
                 bodyEl.innerHTML = `
                     ${summaryHtml}
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" data-video-link style="display: inline-block; padding: 10px 14px; border-radius: 999px; background: #7c5cff; color: #fff; text-decoration: none; font-size: 13px;">B站搜索视频</a>
-                        <a href="${finalLinkUrl}" target="_blank" rel="noopener noreferrer" data-video-original style="display: inline-block; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); text-decoration: none; font-size: 11px; border: 1px solid rgba(255,255,255,0.15);">原始链接</a>
+                    <div class="video-link-row">
+                        <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" data-video-link class="video-link-primary">B站搜索视频</a>
+                        <a href="${finalLinkUrl}" target="_blank" rel="noopener noreferrer" data-video-original class="video-link-secondary">原始链接</a>
                     </div>
-                    <p style="color: rgba(255,255,255,0.35); margin: 6px 0 0; font-size: 11px;">原视频链接在桌面端可能无法播放，已为你提供 B 站搜索</p>
+                    <p class="video-fallback-tip">原视频链接在桌面端可能无法播放，已为你提供 B 站搜索</p>
                 `;
             } else {
                 bodyEl.innerHTML = `
                     ${summaryHtml}
-                    <a href="${finalLinkUrl}" target="_blank" rel="noopener noreferrer" data-video-link style="display: inline-block; padding: 10px 14px; border-radius: 999px; background: #7c5cff; color: #fff; text-decoration: none; font-size: 13px;">点击查看视频</a>
+                    <a href="${finalLinkUrl}" target="_blank" rel="noopener noreferrer" data-video-link class="video-link-primary">点击查看视频</a>
                 `;
             }
         }

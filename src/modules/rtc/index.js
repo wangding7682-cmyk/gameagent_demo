@@ -280,6 +280,7 @@ export class RtcModule {
         this.isJoinInFlight = false;
         this.isLeaving = false;
         this.customScreenTrack = null;
+        this.gameDisplayStream = null;
         this.currentCapturedStream = null;
         this.currentCaptureFingerprint = '';
         this.currentPublishedTrackKey = '';
@@ -1297,6 +1298,131 @@ export class RtcModule {
             this.screenShareIntentActive = false;
             this.eventBus.emit('rtc_screen_share_failed', error);
         }
+    }
+
+    /**
+     * 开启「真实游戏画面」共享：通过浏览器 getDisplayMedia 让用户选择应用窗口/标签页/整屏，
+     * 推到 RTC 屏幕流；StartVoiceChat 已开启 VisionConfig（StreamType=1, Interval=5000ms），
+     * AIGC Bot 会自动订阅本路屏幕流并抽帧给 Ark Vision 模型识别。
+     */
+    async startShareGameScreen() {
+        console.log('[RtcModule] startShareGameScreen 被调用');
+        if (!this.rtcEngine || !this.isJoined) {
+            console.warn('[RtcModule] RTC 未就绪，记录意图，待入房后由用户再次点击触发');
+            this.eventBus.emit('rtc_screen_share_pending', {
+                message: 'RTC 连接尚未完成，开启智能体对话成功后再次点击「共享游戏画面」即可',
+                reason: 'rtc-not-ready'
+            });
+            return;
+        }
+        if (this.isScreenSharing) {
+            console.warn('[RtcModule] 当前已有屏幕流在发布，请先停止');
+            return;
+        }
+
+        if (!navigator.mediaDevices || typeof navigator.mediaDevices.getDisplayMedia !== 'function') {
+            const message = '当前浏览器不支持 getDisplayMedia（需要 HTTPS 或 localhost）';
+            console.error('[RtcModule]', message);
+            this.eventBus.emit('rtc_screen_share_failed', new Error(message));
+            return;
+        }
+
+        let displayStream;
+        try {
+            displayStream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    frameRate: { ideal: 15, max: 30 },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            });
+        } catch (error) {
+            console.warn('[RtcModule] 用户取消或拒绝授权屏幕共享', error);
+            this.eventBus.emit('rtc_screen_share_failed', error);
+            return;
+        }
+
+        const videoTrack = displayStream.getVideoTracks?.()[0];
+        if (!videoTrack) {
+            console.error('[RtcModule] getDisplayMedia 未返回视频轨');
+            this.eventBus.emit('rtc_screen_share_failed', new Error('no_video_track'));
+            return;
+        }
+
+        try {
+            const screenStreamIndex = window.VERTC.StreamIndex.STREAM_INDEX_SCREEN;
+            const externalVideoSourceType = window.VERTC.VideoSourceType?.VIDEO_SOURCE_TYPE_EXTERNAL;
+            const screenVideoMediaType = window.VERTC.MediaType?.VIDEO;
+            if (externalVideoSourceType === undefined || screenVideoMediaType === undefined) {
+                throw new Error('当前 RTC SDK 不支持外部视频源或屏幕媒体类型');
+            }
+
+            await this.rtcEngine.setVideoSourceType(screenStreamIndex, externalVideoSourceType);
+            await this.rtcEngine.setExternalVideoTrack(screenStreamIndex, videoTrack);
+            await this.rtcEngine.setScreenEncoderConfig({
+                width: 1280,
+                height: 720,
+                frameRate: 15,
+                maxBitrate: 2000
+            });
+            await this.rtcEngine.publishScreen(screenVideoMediaType);
+
+            // 用户在浏览器原生 UI 点「停止共享」时同步收尾
+            videoTrack.addEventListener('ended', () => {
+                console.log('[RtcModule] 用户从浏览器原生 UI 停止共享游戏画面');
+                this.stopShareGameScreen().catch((err) => console.error(err));
+            });
+
+            this.releaseCustomScreenTrack();
+            this.customScreenTrack = videoTrack;
+            this.gameDisplayStream = displayStream;
+            this.currentPublishedTrackKey = `display:${videoTrack.id}`;
+            this.isScreenSharing = true;
+            this.screenShareIntentActive = true;
+            this.eventBus.emit('rtc_screen_share_started', {
+                reason: 'manual-game-screen',
+                sourceType: 'display',
+                stream: displayStream
+            });
+            this.eventBus.emit('ABILITY_FEEDBACK', {
+                source: 'rtc',
+                ability: '游戏画面识别',
+                text: '已开启游戏画面共享，智能体将每隔 5 秒分析一次画面。'
+            });
+            console.log('[RtcModule] 游戏画面已发布到 RTC 屏幕流');
+        } catch (error) {
+            console.error('[RtcModule] 发布游戏画面共享失败', error);
+            try { videoTrack.stop(); } catch (_) {}
+            try { displayStream.getTracks().forEach((t) => t.stop()); } catch (_) {}
+            this.eventBus.emit('rtc_screen_share_failed', error);
+        }
+    }
+
+    async stopShareGameScreen() {
+        if (!this.gameDisplayStream && !this.isScreenSharing) {
+            return;
+        }
+        try {
+            const screenVideoMediaType = window.VERTC.MediaType?.VIDEO;
+            if (this.rtcEngine && this.isScreenSharing && screenVideoMediaType !== undefined) {
+                await this.rtcEngine.unpublishScreen(screenVideoMediaType);
+            }
+        } catch (error) {
+            console.error('[RtcModule] unpublishScreen 失败', error);
+        }
+        try {
+            if (this.gameDisplayStream) {
+                this.gameDisplayStream.getTracks().forEach((t) => t.stop());
+            }
+        } catch (_) {}
+        this.gameDisplayStream = null;
+        this.releaseCustomScreenTrack();
+        this.clearScreenShareSourceCache();
+        this.isScreenSharing = false;
+        this.screenShareIntentActive = false;
+        this.eventBus.emit('rtc_screen_share_stopped');
+        console.log('[RtcModule] 游戏画面共享已停止');
     }
 
     /**

@@ -2,8 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { config } from '../config.js';
+import { taskStore } from './taskFsmService.js';
 
 const DATA_ROOT = path.resolve(config.projectRoot, './data');
+
+// 长期记忆本地缓存：userId -> { data, expiresAt }
+const ltmCache = new Map();
+const LTM_CACHE_TTL_MS = 50_000;
 
 const DEFAULT_PERSONA = {
   id: 'main-agent-default',
@@ -124,11 +129,31 @@ export function loadUserProfile(userId = 'default') {
   return { ...profile, user_id: profile.user_id || id };
 }
 
-export function loadLongTermMemory(userId = 'default') {
+export function loadLongTermMemory(userId = 'default', turnId = '') {
   const id = safeId(userId || 'default');
+  // 1. 单轮缓存（turn-level）
+  if (turnId) {
+    const turnCached = taskStore.getTurnCache(turnId, `ltm:${id}`);
+    if (turnCached !== undefined) {
+      console.log(`[LoadLongTermMemory] 命中单轮缓存 turnId=${turnId} userId=${id}`);
+      return turnCached;
+    }
+  }
+  const now = Date.now();
+  // 2. 进程内存缓存
+  const cached = ltmCache.get(id);
+  if (cached && cached.expiresAt > now) {
+    const result = { ...cached.data, user_id: cached.data.user_id || id };
+    if (turnId) taskStore.setTurnCache(turnId, `ltm:${id}`, result);
+    return result;
+  }
+  // 3. 文件回退
   const filePath = path.join(DATA_ROOT, 'memory', `${id}.longterm.json`);
   const memory = deepMerge(DEFAULT_LONG_TERM_MEMORY, readJsonFile(filePath, {}));
-  return { ...memory, user_id: memory.user_id || id };
+  const result = { ...memory, user_id: memory.user_id || id };
+  ltmCache.set(id, { data: result, expiresAt: now + LTM_CACHE_TTL_MS });
+  if (turnId) taskStore.setTurnCache(turnId, `ltm:${id}`, result);
+  return result;
 }
 
 export function loadAgentPreferences() {

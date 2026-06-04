@@ -1,4 +1,9 @@
 import { config } from '../config.js';
+import { taskStore } from './taskFsmService.js';
+
+// Viking 检索内存缓存：key = `${userId}:${query}` -> { data, expiresAt }
+const vikingSearchCache = new Map();
+const VIKING_CACHE_TTL_MS = 50_000;
 
 function assertVikingConfig() {
   const missing = [];
@@ -195,16 +200,35 @@ export async function vikingSearchEvent(payload = {}) {
   return result;
 }
 
-export async function vikingSearchMemory(payload = {}) {
+export async function vikingSearchMemory(payload = {}, turnId = '') {
   const defaultMemoryTypes = [
     config.vikingMemory.eventType || 'event_v1',
     config.vikingMemory.profileType || 'profile_v1',
   ];
+  const userId = payload.user_id || payload.userId || '';
+  const query = payload.query || '';
+  const cacheKey = `${userId}:${query}`;
+  // 1. 单轮缓存（turn-level）
+  if (turnId) {
+    const turnCached = taskStore.getTurnCache(turnId, `viking:${cacheKey}`);
+    if (turnCached !== undefined) {
+      console.log(`[VikingSearchMemory] 命中单轮缓存 turnId=${turnId} query="${query}" user_id="${userId}"`);
+      return turnCached;
+    }
+  }
+  const now = Date.now();
+  // 2. 进程内存缓存
+  const cached = vikingSearchCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    if (turnId) taskStore.setTurnCache(turnId, `viking:${cacheKey}`, cached.data);
+    return cached.data;
+  }
+
   const body = {
     ...buildCollectionIdentifier(),
-    query: payload.query || '',
+    query,
     filter: {
-      user_id: payload.user_id || payload.userId || '',
+      user_id: userId,
       memory_type: payload.memory_types || defaultMemoryTypes,
     },
     limit: Math.max(1, Math.min(5000, Number(payload.limit || config.memory.limit || 10))),
@@ -227,6 +251,9 @@ export async function vikingSearchMemory(payload = {}) {
   } else {
     console.log(`[VikingSearchMemory] query="${body.query}" => code=${result?.code} message=${result?.message}`);
   }
+
+  vikingSearchCache.set(cacheKey, { data: result, expiresAt: now + VIKING_CACHE_TTL_MS });
+  if (turnId) taskStore.setTurnCache(turnId, `viking:${cacheKey}`, result);
   return result;
 }
 

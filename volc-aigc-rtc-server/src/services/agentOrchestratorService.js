@@ -143,7 +143,7 @@ export async function runAgentOrchestration(body = {}, emit = () => {}) {
     emitFsmState(taskStore.get(task.task_id), { message: '正在理解问题' });
     emitEvent('voice_delta', { task_id: task.task_id, turn_id: turnId, text: '收到！', source: 'fixed_ack', priority: 'high', speakable: false });
 
-    context = await buildAgentContext(body);
+    context = await buildAgentContext(body, turnId);
     context.taskId = task.task_id;
     timeline.push({ stage: 'context_ready', latency_ms: Date.now() - startedAt });
     logOrchestrator('context_ready', {
@@ -464,6 +464,7 @@ export async function runAgentOrchestration(body = {}, emit = () => {}) {
           task_id: task.task_id,
           turn_id: turnId,
           popup_mode: state.popup_mode,
+          source: context.source,
           ...state.tactic_data,
         });
         taskStore.transition(task.task_id, 'DONE');

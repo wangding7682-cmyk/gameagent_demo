@@ -24,7 +24,7 @@
             <div class="topbar-status">
                 <span class="status-chip" id="status-mode">当前模式：语音聊天</span>
                 <span class="status-chip" id="status-rtc">语音连接：未连接</span>
-                <span class="status-chip" id="status-video">游戏视频：未上传</span>
+                <span class="status-chip" id="status-video">视频源：未选择</span>
             </div>
         </header>
 
@@ -78,9 +78,12 @@
                     <div class="stage-header">
                         <div>
                             <p class="panel-kicker">Workspace</p>
-                            <h2>游戏视频模拟区</h2>
+                            <h2>视频工作区</h2>
                         </div>
-                        <button id="btn-select-video" class="btn primary">选择本地视频</button>
+                        <div class="stage-mode-switch">
+                            <button class="mode-btn active" data-stage-mode="local" type="button">本地视频</button>
+                            <button class="mode-btn" data-stage-mode="screen" type="button">屏幕共享</button>
+                        </div>
                     </div>
 
                     <input id="video-file-input" type="file" accept="video/*" hidden>
@@ -88,9 +91,9 @@
                     <div id="upload-dropzone" class="upload-dropzone">
                         <div id="empty-state" class="empty-state">
                             <div class="empty-icon">▶</div>
-                            <h3>上传游戏视频，模拟边玩边问</h3>
-                            <p>上传后可以选择语音聊天或屏幕共享，让小G结合画面理解你的问题。</p>
-                            <button id="btn-select-video-inline" class="btn primary">上传本地视频</button>
+                            <h3>上传视频，模拟边玩边问</h3>
+                            <p>选择本地视频播放后，可推送给小G结合画面理解你的问题。</p>
+                            <button id="btn-select-video-inline" class="btn primary">选择本地视频</button>
                         </div>
 
                         <div id="video-player-shell" class="video-player-shell is-hidden">
@@ -100,7 +103,10 @@
                                     <strong id="video-file-name">未选择视频</strong>
                                     <p id="video-file-tip">上传后可在此处播放和预览。</p>
                                 </div>
-                                <button id="btn-reselect-video" class="btn">重新选择</button>
+                                <div class="video-meta-actions">
+                                    <button id="btn-push-local-video" class="btn primary" title="将当前播放的视频画面推送给智能体分析">推送给智能体</button>
+                                    <button id="btn-reselect-video" class="btn">重新选择</button>
+                                </div>
                             </div>
                             <div class="video-controls">
                                 <button id="btn-play-toggle" class="btn primary">播放</button>
@@ -114,6 +120,25 @@
                                     <input id="video-volume" type="range" min="0" max="1" step="0.05" value="1">
                                 </div>
                                 <button id="btn-fullscreen" class="btn">全屏</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="screen-share-shell" class="screen-share-shell is-hidden">
+                        <div id="screen-share-empty" class="empty-state">
+                            <div class="empty-icon">🖥️</div>
+                            <h3>共享你的屏幕或应用窗口</h3>
+                            <p>选择要共享的内容，画面将实时推送给小G分析。</p>
+                            <button id="btn-start-screen-share" class="btn primary">开始共享</button>
+                        </div>
+                        <div id="screen-share-active" class="video-player-shell is-hidden">
+                            <video id="screen-share-preview" class="local-video" autoplay muted playsinline></video>
+                            <div class="video-meta">
+                                <div>
+                                    <strong id="screen-share-status">正在共享</strong>
+                                    <p>画面已推送给智能体</p>
+                                </div>
+                                <button id="btn-stop-screen-share" class="btn danger">停止共享</button>
                             </div>
                         </div>
                     </div>
@@ -159,7 +184,7 @@
         </main>
 
         <footer class="footer-bar">
-            <span>使用路径：先确认音频输入设置，可选上传游戏视频，再通过语音聊天、屏幕共享或文本聊天与小G实时对话。</span>
+            <span>两种用法：① 点击右侧小G头像，选择「语音聊天」或「屏幕共享」开聊，体验战术建议、精彩视频、知识卡片等能力；② 在中间工作区「选择本地视频」上传后开聊，或切到「屏幕共享 → 开始共享」选窗口后实时对话。</span>
         </footer>
     </div>
 
@@ -255,6 +280,7 @@
             <button id="rtc-send-text" class="btn primary">发送</button>
             <button id="rtc-interrupt" class="btn">停止小G说话</button>
             <button id="rtc-share-screen" class="btn">共享屏幕</button>
+            <button id="rtc-share-game" class="btn primary" title="选择游戏窗口/标签页/整屏，画面将通过 RTC 推给智能体识别">共享游戏画面</button>
             <button id="video-hangup" class="btn danger">挂断</button>
         </div>
     </div>

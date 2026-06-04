@@ -1771,6 +1771,54 @@ EventBus.on('rtc_stop_screen_share', () => {
     }
 });
 
+// --- 新增：游戏画面共享（getDisplayMedia + RTC publishScreen） ---
+EventBus.on('rtc_start_game_screen_share', () => {
+    if (RTCModule) {
+        RTCModule.startShareGameScreen();
+    }
+});
+
+EventBus.on('rtc_stop_game_screen_share', () => {
+    if (RTCModule) {
+        RTCModule.stopShareGameScreen();
+    }
+});
+
+(function bindGameShareButton() {
+    const bind = () => {
+        const btn = document.getElementById('rtc-share-game');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            if (!RTCModule) {
+                console.warn('[main] RTCModule 未初始化');
+                return;
+            }
+            if (RTCModule.isScreenSharing) {
+                EventBus.emit('rtc_stop_game_screen_share');
+            } else {
+                EventBus.emit('rtc_start_game_screen_share');
+            }
+        });
+        EventBus.on('rtc_screen_share_started', (payload) => {
+            if (payload?.sourceType === 'display') {
+                btn.textContent = '停止共享游戏画面';
+                btn.classList.add('danger');
+                btn.classList.remove('primary');
+            }
+        });
+        EventBus.on('rtc_screen_share_stopped', () => {
+            btn.textContent = '共享游戏画面';
+            btn.classList.remove('danger');
+            btn.classList.add('primary');
+        });
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bind);
+    } else {
+        bind();
+    }
+})();
+
 function initReadmeViewer() {
     const openBtn = document.getElementById('btn-readme');
     const closeBtn = document.getElementById('btn-readme-close');

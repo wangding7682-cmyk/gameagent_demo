@@ -98,7 +98,7 @@ export async function retrieveAgentKnowledge({ query, forceMock = false, limit =
   }
 }
 
-export async function buildAgentContext(body = {}) {
+export async function buildAgentContext(body = {}, turnId = '') {
   const sessionId = String(body.sessionId || body.session_id || body.userId || body.user_id || 'default').trim();
   const userId = String(body.userId || body.user_id || sessionId || 'default').trim();
   const userQuery = String(body.text || body.query || body.user_query || '').trim();
@@ -107,7 +107,7 @@ export async function buildAgentContext(body = {}) {
   const forceMock = body.forceMock === true || body.source === 'demo_button';
   const incomingContext = body.context && typeof body.context === 'object' ? body.context : {};
   const userProfile = loadUserProfile(userId);
-  const longTermMemory = loadLongTermMemory(userId);
+  const longTermMemory = loadLongTermMemory(userId, turnId);
 
   if (Object.keys(incomingContext).length > 0) {
     upsertAgentDynamicContext(sessionId, incomingContext);
