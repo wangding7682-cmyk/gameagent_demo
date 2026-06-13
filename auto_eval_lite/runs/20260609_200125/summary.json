@@ -1,0 +1,103 @@
+{
+  "total_cases": 3,
+  "judged_rows": 3,
+  "grand_avg_overall": 5.33,
+  "parse_error_count": 0,
+  "by_track": {
+    "main_fast": {
+      "total": 3,
+      "pass": 0,
+      "fail": 3,
+      "pass_rate": 0,
+      "avg_overall_score": 5.33,
+      "dimension_averages": {
+        "field_compliance": 5.33,
+        "intent_grounding": 8.33,
+        "routing_accuracy": 3,
+        "naturalness": 9,
+        "latency_fitness": 6.67
+      },
+      "low_score_cases": [
+        {
+          "case_id": "AGC-001",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "实际路由意图与期望的unspecified不一致，且strategy场景下main_summary未为空，不符合设计约束"
+        },
+        {
+          "case_id": "AGC-009",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "understanding_reply为空不符合字数约束，实际路由意图smalltalk与期望unspecified不一致"
+        }
+      ]
+    }
+  },
+  "track_weakness": {
+    "main_fast": {
+      "dim": "routing_accuracy",
+      "avg": 3
+    }
+  },
+  "by_case": {
+    "AGC-001": {
+      "case_id": "AGC-001",
+      "question": "怎么打亚索？",
+      "expected_intent": null,
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5
+    },
+    "AGC-003": {
+      "case_id": "AGC-003",
+      "question": "大龙和先锋怎么选？",
+      "expected_intent": null,
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 6
+    },
+    "AGC-009": {
+      "case_id": "AGC-009",
+      "question": "只玩一个英雄上分真的比玩一堆英雄有效吗？",
+      "expected_intent": null,
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5
+    }
+  },
+  "audit_summary": [
+    {
+      "flag": "understanding_reply 字数=N 越界(18-45)",
+      "count": 1
+    }
+  ],
+  "routing_accuracy": {
+    "total_routed": 0,
+    "matched": 0,
+    "mismatched": 0,
+    "rate": null,
+    "mismatches": []
+  },
+  "compound_decomposition_accuracy": null
+}

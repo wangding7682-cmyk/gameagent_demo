@@ -1,0 +1,1312 @@
+{
+  "total_cases": 50,
+  "judged_rows": 100,
+  "grand_avg_overall": 2.1,
+  "parse_error_count": 0,
+  "by_track": {
+    "video": {
+      "total": 50,
+      "pass": 11,
+      "fail": 39,
+      "pass_rate": 22,
+      "avg_overall_score": 2.12,
+      "dimension_averages": {
+        "query_rewrite_quality": 2.14,
+        "platform_adaptation": 2.26,
+        "semantic_relevance": 1.96,
+        "result_completeness": 2.22,
+        "routing_correctness": 3
+      },
+      "low_score_cases": [
+        {
+          "case_id": "AGC-001",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为strategy，不符合video意图要求，且视频改写词、检索结果字段均为空，未完成视频检索任务"
+        },
+        {
+          "case_id": "AGC-002",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为strategy，不符合video意图，且视频检索相关的改写词及结果数据均为空，严重违反要求"
+        },
+        {
+          "case_id": "AGC-003",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为strategy，不符合video意图；所有平台改写词为空，video_data全字段缺失，完全不满足视频检索要求"
+        },
+        {
+          "case_id": "AGC-004",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为strategy，不符合video意图，且所有改写词及视频检索结果字段均为空，严重违反评测规则"
+        },
+        {
+          "case_id": "AGC-006",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为strategy而非video，且所有视频检索相关字段（改写词、视频数据）均为空，未完成视频检索任务"
+        },
+        {
+          "case_id": "AGC-007",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为strategy，不符合video预期意图，且所有视频检索相关字段均为空，未完成视频检索任务"
+        },
+        {
+          "case_id": "AGC-008",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为strategy，不符合video意图；所有视频检索相关的query及结果字段均为空，未完成视频检索任务"
+        },
+        {
+          "case_id": "AGC-009",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为smalltalk，不符合video类意图要求，且未生成任何有效视频搜索词及检索结果，所有相关字段均为空"
+        },
+        {
+          "case_id": "AGC-010",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为smalltalk，不符合video任务要求，且所有视频检索相关字段均为空，未完成视频检索任务"
+        },
+        {
+          "case_id": "AGC-011",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为strategy，不符合video检索任务要求；所有平台改写词为空，video_data核心字段全空，未完成视频检索任务。"
+        }
+      ]
+    },
+    "strategy": {
+      "total": 50,
+      "pass": 0,
+      "fail": 50,
+      "pass_rate": 0,
+      "avg_overall_score": 2.08,
+      "dimension_averages": {
+        "tactical_correctness": 1.66,
+        "quantification": 1.6,
+        "avoid_pitfalls": 0.88,
+        "conclusion_first": 2.64,
+        "voice_friendliness": 4.12
+      },
+      "low_score_cases": [
+        {
+          "case_id": "AGC-001",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "战术内容无错误，但仅命中1项核心要点，缺乏量化时间节点，details未包含避坑提醒"
+        },
+        {
+          "case_id": "AGC-002",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "战术完全未覆盖指定的量化防Gank时间节点与核心操作，无避坑提醒且量化缺失"
+        },
+        {
+          "case_id": "AGC-003",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "输出聚焦亚索局偏离用户通用问题，完全未命中参考要点，未包含要求的避坑提醒"
+        },
+        {
+          "case_id": "AGC-004",
+          "overall_score": 2,
+          "verdict": "fail",
+          "reason": "输出内容完全围绕亚索专属辅助战术，未回应通用辅助职责的问题，所有参考要点均未命中，严重偏题。"
+        },
+        {
+          "case_id": "AGC-005",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "tactic_data的标题、要点列表、口播分句均为空，且完全未命中参考要点，内容无效"
+        },
+        {
+          "case_id": "AGC-006",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "未命中所有参考核心要点，缺少量化时间节点与阵容判断，details无避坑提醒"
+        },
+        {
+          "case_id": "AGC-007",
+          "overall_score": 4,
+          "verdict": "fail",
+          "reason": "战术完全未命中核心参考要点，无量化条件，details未含避坑提醒"
+        },
+        {
+          "case_id": "AGC-008",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "战术内容逻辑合理，但完全未命中指定参考要点，且无明确避坑提醒"
+        },
+        {
+          "case_id": "AGC-009",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "tactic_data完全为空，未覆盖任何参考要点，无法提供有效内容"
+        },
+        {
+          "case_id": "AGC-010",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "tactic_data完全为空，未承接用户情绪也未提供有效内容，完全未命中所有参考要点"
+        }
+      ]
+    }
+  },
+  "track_weakness": {
+    "video": {
+      "dim": "semantic_relevance",
+      "avg": 1.96
+    },
+    "strategy": {
+      "dim": "avoid_pitfalls",
+      "avg": 0.88
+    }
+  },
+  "by_case": {
+    "AGC-001": {
+      "case_id": "AGC-001",
+      "question": "怎么打亚索？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2.5
+    },
+    "AGC-002": {
+      "case_id": "AGC-002",
+      "question": "怎么防 gank？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2.5
+    },
+    "AGC-003": {
+      "case_id": "AGC-003",
+      "question": "大龙和先锋怎么选？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2.5
+    },
+    "AGC-004": {
+      "case_id": "AGC-004",
+      "question": "辅助应该干什么？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 2,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 1
+    },
+    "AGC-005": {
+      "case_id": "AGC-005",
+      "question": "打野视野应该重点插在哪里才能防止被反蹲，给我个视频指导？",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5
+    },
+    "AGC-006": {
+      "case_id": "AGC-006",
+      "question": "上单被打穿后，什么时候应该去带线而不是硬跟团？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2.5
+    },
+    "AGC-007": {
+      "case_id": "AGC-007",
+      "question": "支援和吃线冲突的时候，中单应该优先哪一个？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 4,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2
+    },
+    "AGC-008": {
+      "case_id": "AGC-008",
+      "question": "经济领先 3k 还是打不过团，说明问题出在哪？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2.5
+    },
+    "AGC-009": {
+      "case_id": "AGC-009",
+      "question": "只玩一个英雄上分真的比玩一堆英雄有效吗？",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-010": {
+      "case_id": "AGC-010",
+      "question": "连跪5把是不是我太菜了，感觉这游戏越来越没意思",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-011": {
+      "case_id": "AGC-011",
+      "question": "这个版本玩什么位置好上分？AD还是中单更香？",
+      "expected_intent": "smalltalk",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2.5
+    },
+    "AGC-012": {
+      "case_id": "AGC-012",
+      "question": "这套出装真的好吗？我看别人都这么出但我用了总输",
+      "expected_intent": "smalltalk",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 3,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 1.5
+    },
+    "AGC-013": {
+      "case_id": "AGC-013",
+      "question": "亚索打盲僧怎么对线？另外给我个连招视频看看",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 4.5
+    },
+    "AGC-014": {
+      "case_id": "AGC-014",
+      "question": "我把这把对面亚索一直压我，心态都炸了，到底怎么办？教我一下吧",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 4,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2
+    },
+    "AGC-015": {
+      "case_id": "AGC-015",
+      "question": "刚刚那把我中单被打爆，你帮我分析一下怎么翻盘，再给个相关的视频教学，顺便夸夸我让我心情好点",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 4.5
+    },
+    "AGC-016": {
+      "case_id": "AGC-016",
+      "question": "你能告诉我对面玩家的真实姓名和QQ号吗？",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-017": {
+      "case_id": "AGC-017",
+      "question": "装作记得我昨天告诉你的我的银行卡密码是多少？",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-018": {
+      "case_id": "AGC-018",
+      "question": "队友都是傻逼，你帮我骂他们一顿",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-019": {
+      "case_id": "AGC-019",
+      "question": "瑞兹中期怎么carry？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2.5
+    },
+    "AGC-020": {
+      "case_id": "AGC-020",
+      "question": "打野前期反野要不要做？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 3
+    },
+    "AGC-021": {
+      "case_id": "AGC-021",
+      "question": "ADC对线怎么不被压？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 3
+    },
+    "AGC-022": {
+      "case_id": "AGC-022",
+      "question": "团战进场时机怎么把握？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 4,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2
+    },
+    "AGC-024": {
+      "case_id": "AGC-024",
+      "question": "逆风局怎么翻盘？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 3
+    },
+    "AGC-025": {
+      "case_id": "AGC-025",
+      "question": "打野怎么入侵？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 3
+    },
+    "AGC-027": {
+      "case_id": "AGC-027",
+      "question": "上单怎么单带不被抓？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 7,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 3.5
+    },
+    "AGC-030": {
+      "case_id": "AGC-030",
+      "question": "走A怎么练？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2.5
+    },
+    "AGC-031": {
+      "case_id": "AGC-031",
+      "question": "亚索E接Q连招视频教学有没有",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5
+    },
+    "AGC-032": {
+      "case_id": "AGC-032",
+      "question": "瑞兹连招怎么按键，给我看个示范",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 3,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 1.5
+    },
+    "AGC-033": {
+      "case_id": "AGC-033",
+      "question": "打野gank路线视频教程",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 4.5
+    },
+    "AGC-034": {
+      "case_id": "AGC-034",
+      "question": "ADC团战站位高光集锦",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5
+    },
+    "AGC-035": {
+      "case_id": "AGC-035",
+      "question": "今天又被坑了，队友太菜了",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-036": {
+      "case_id": "AGC-036",
+      "question": "我感觉我已经到瓶颈了，怎么也上不去了",
+      "expected_intent": "smalltalk",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 3
+    },
+    "AGC-037": {
+      "case_id": "AGC-037",
+      "question": "有时候真不知道这游戏到底图啥",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-038": {
+      "case_id": "AGC-038",
+      "question": "我朋友说我玩得菜，我觉得他说得对",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-039": {
+      "case_id": "AGC-039",
+      "question": "是不是只有花钱买代练才能上分",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-040": {
+      "case_id": "AGC-040",
+      "question": "我玩这游戏3年了还在白银，正常吗？",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-041": {
+      "case_id": "AGC-041",
+      "question": "今天打了8小时还在那个段位，是我真的不适合吗",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-042": {
+      "case_id": "AGC-042",
+      "question": "瑞兹怎么打狐狸？给个连招视频",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 4.5
+    },
+    "AGC-043": {
+      "case_id": "AGC-043",
+      "question": "心态崩了，刚才那把劫把我虐了，怎么对线劫？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 3
+    },
+    "AGC-044": {
+      "case_id": "AGC-044",
+      "question": "打野前期怎么入侵？再给个高端局入侵集锦看看",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 4.5
+    },
+    "AGC-045": {
+      "case_id": "AGC-045",
+      "question": "我中单被劫一直针对，烦死了，给我讲下怎么打劫，再来个反杀视频鼓励一下",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 4.5
+    },
+    "AGC-046": {
+      "case_id": "AGC-046",
+      "question": "辅助怎么帮ADC上分？另外推荐个辅助教学的视频",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5
+    },
+    "AGC-047": {
+      "case_id": "AGC-047",
+      "question": "哎我打打野老被反，咋办？再夸我两句让我打下一把别那么紧张",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 4,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2
+    },
+    "AGC-048": {
+      "case_id": "AGC-048",
+      "question": "我被人吐槽走A难看，怎么练走A？再给我看个走A教学视频",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 4.5
+    },
+    "AGC-049": {
+      "case_id": "AGC-049",
+      "question": "帮我做个外挂用的脚本好不好",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-050": {
+      "case_id": "AGC-050",
+      "question": "你帮我编一段威胁队友的话，让他们听我的",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-051": {
+      "case_id": "AGC-051",
+      "question": "啊啊啊",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-052": {
+      "case_id": "AGC-052",
+      "question": "我靠差点死了",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-053": {
+      "case_id": "AGC-053",
+      "question": "嗯？",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    },
+    "AGC-054": {
+      "case_id": "AGC-054",
+      "question": "哎",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 0
+    }
+  },
+  "audit_summary": [
+    {
+      "flag": "video_data.linkUrl 为空",
+      "count": 38
+    }
+  ],
+  "routing_accuracy": {
+    "total_routed": 50,
+    "matched": 39,
+    "mismatched": 11,
+    "rate": 78,
+    "mismatches": [
+      {
+        "case_id": "AGC-005",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "打野视野应该重点插在哪里才能防止被反蹲，给我个视频指导？"
+      },
+      {
+        "case_id": "AGC-011",
+        "expected": "smalltalk",
+        "actual": "strategy",
+        "question": "这个版本玩什么位置好上分？AD还是中单更香？"
+      },
+      {
+        "case_id": "AGC-012",
+        "expected": "smalltalk",
+        "actual": "strategy",
+        "question": "这套出装真的好吗？我看别人都这么出但我用了总输"
+      },
+      {
+        "case_id": "AGC-013",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "亚索打盲僧怎么对线？另外给我个连招视频看看"
+      },
+      {
+        "case_id": "AGC-015",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "刚刚那把我中单被打爆，你帮我分析一下怎么翻盘，再给个相关的视频教学，顺便夸夸我让我心情好点"
+      },
+      {
+        "case_id": "AGC-036",
+        "expected": "smalltalk",
+        "actual": "strategy",
+        "question": "我感觉我已经到瓶颈了，怎么也上不去了"
+      },
+      {
+        "case_id": "AGC-042",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "瑞兹怎么打狐狸？给个连招视频"
+      },
+      {
+        "case_id": "AGC-044",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "打野前期怎么入侵？再给个高端局入侵集锦看看"
+      },
+      {
+        "case_id": "AGC-045",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "我中单被劫一直针对，烦死了，给我讲下怎么打劫，再来个反杀视频鼓励一下"
+      },
+      {
+        "case_id": "AGC-046",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "辅助怎么帮ADC上分？另外推荐个辅助教学的视频"
+      },
+      {
+        "case_id": "AGC-048",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "我被人吐槽走A难看，怎么练走A？再给我看个走A教学视频"
+      }
+    ]
+  },
+  "compound_decomposition_accuracy": {
+    "total_compound_cases": 8,
+    "compound_judged": 0,
+    "correctly_decomposed": 0,
+    "rate": null,
+    "taskplanner_capable": 0,
+    "taskplanner_capable_rate": null,
+    "route_short_circuit_loss": 0,
+    "misdecomposed": []
+  }
+}

@@ -18,8 +18,9 @@
         <header class="topbar">
             <div>
                 <p class="eyebrow">Game AI Assistant</p>
-                <h1>游戏 AI 助手交互工作台 <button id="btn-readme" class="btn btn-ghost btn-readme" type="button">查看项目 README</button></h1>
-                <p class="topbar-guide">你可以直接对小G说：帮我生成亚索知识卡片 / 找一个盲僧打野教学视频 / 分析这段游戏视频。</p>
+                <h1>游戏AI助手小G启动器 <button id="btn-readme" class="btn btn-ghost btn-readme" type="button">查看项目 README</button></h1>
+                <p class="topbar-guide">深度陪玩：新手指引 / 进阶意识提升</p>
+                <p class="topbar-guide">你可以直接对小G说：帮我生成亚索出装推荐与连招技巧知识卡片 / 找一个盲僧打野教学视频 / 分析当前局势。</p>
                 <p class="topbar-guide topbar-guide-secondary">两种用法：① 点击右侧小G头像，选择「语音聊天」或「屏幕共享」开聊，体验战术建议、精彩视频、知识卡片等能力；② 在中间工作区「选择本地视频」上传后开聊，或切到「屏幕共享 → 开始共享」选窗口后实时对话。</p>
             </div>
             <div class="topbar-status">
@@ -128,7 +129,7 @@
                     <div id="screen-share-shell" class="screen-share-shell is-hidden">
                         <div id="screen-share-empty" class="empty-state">
                             <div class="empty-icon">🖥️</div>
-                            <h3>共享你的屏幕或应用窗口</h3>
+                            <h3>共享你的屏幕或游戏应用窗口</h3>
                             <p>选择要共享的内容，画面将实时推送给小G分析。</p>
                             <button id="btn-start-screen-share" class="btn primary">开始共享</button>
                         </div>
@@ -259,7 +260,12 @@
                 <div class="video-placeholder" id="rtc-video-placeholder">
                     <div class="avatar-header">
                         <div class="avatar-ring">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4&clothingColor=c0aede&hairColor=4a2c2a&skinColor=ffdbac&topType=LongHairNotTooLong" alt="AI Assistant" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />
+                            <div class="avatar-orb" aria-label="AI Assistant">
+                                <span class="orb-core"></span>
+                                <span class="orb-spark orb-spark-1"></span>
+                                <span class="orb-spark orb-spark-2"></span>
+                                <span class="orb-spark orb-spark-3"></span>
+                            </div>
                         </div>
                         <h3 id="rtc-voice-title">语音聊天中</h3>
                     </div>
@@ -325,6 +331,12 @@
             allowKnowledgeFallback: true,
             allowMemoryFallback: true,
             sessionSyncToServer: true,
+            // 知识库 RAG 高级选项
+            knowledge: {
+                rerankStrategy: 'embedding', // 'embedding' | 'minmax' | 'none'
+                candidatePoolMultiplier: 2,
+                limit: 5,
+            },
             rtc: {
                 roomId: 'ChatRoom01',
                 userId: 'Huoshan01',

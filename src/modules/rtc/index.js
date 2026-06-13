@@ -220,7 +220,41 @@ const apiService = {
     },
 
     async startVoiceChat(runtimeConfig, session, overrides = {}) {
-        const voiceChatConfig = overrides.voiceChatConfig || runtimeConfig.voiceChatConfig;
+        let voiceChatConfig = overrides.voiceChatConfig || runtimeConfig.voiceChatConfig;
+        let agentConfig = overrides.agentConfig;
+
+        // 从 runtime 读取开关状态，动态覆盖配置
+        if (typeof window !== 'undefined' && window.__GAME_AI_RUNTIME__?.rtc?.featureToggles) {
+            const featureToggles = window.__GAME_AI_RUNTIME__.rtc.featureToggles;
+
+            // 1. 动态覆盖 VADConfig (AI 语义判停)
+            if (featureToggles.aiVad?.enabled !== undefined && voiceChatConfig?.ASRConfig) {
+                // deep clone 避免修改原配置
+                voiceChatConfig = JSON.parse(JSON.stringify(voiceChatConfig));
+                if (!voiceChatConfig.ASRConfig.VADConfig) {
+                    voiceChatConfig.ASRConfig.VADConfig = {
+                        AIVAD: featureToggles.aiVad.enabled,
+                        SilenceTime: 1000
+                    };
+                } else {
+                    voiceChatConfig.ASRConfig.VADConfig.AIVAD = featureToggles.aiVad.enabled;
+                }
+            }
+
+            // 2. 动态覆盖 AgentConfig.VoicePrint.EnableSV (声纹降噪)
+            if (featureToggles.voicePrintRealtime?.enabled !== undefined) {
+                agentConfig = JSON.parse(JSON.stringify(agentConfig || {}));
+                if (!agentConfig.VoicePrint) {
+                    agentConfig.VoicePrint = {
+                        Mode: 1,
+                        EnableSV: featureToggles.voicePrintRealtime.enabled,
+                        VoiceDuration: 7
+                    };
+                } else {
+                    agentConfig.VoicePrint.EnableSV = featureToggles.voicePrintRealtime.enabled;
+                }
+            }
+        }
 
         const url = `${runtimeConfig.apiBaseUrl}/api/rtc/voice-chat/start`;
         const response = await fetch(url, {
@@ -234,7 +268,7 @@ const apiService = {
                 agentUserId: overrides.agentUserId || runtimeConfig.agentUserId || undefined,
                 welcomeMessage: overrides.welcomeMessage || runtimeConfig.welcomeMessage || undefined,
                 config: voiceChatConfig || undefined,
-                agentConfig: overrides.agentConfig
+                agentConfig: agentConfig
             })
         });
 
@@ -431,6 +465,32 @@ export class RtcModule {
                 }
             }
         });
+    }
+
+    bindFirstAudibleProbe(container, userId, publishedAt) {
+        if (!container || !publishedAt) {
+            return;
+        }
+        const probeKey = '_traeAudibleProbed';
+        const tryBind = () => {
+            const mediaEls = container.querySelectorAll('audio, video');
+            mediaEls.forEach((el) => {
+                if (el.dataset[probeKey] === '1') {
+                    return;
+                }
+                el.dataset[probeKey] = '1';
+                const onPlaying = () => {
+                    const audibleAt = Date.now();
+                    const ttsToEarMs = audibleAt - publishedAt;
+                    console.log(`[RtcTiming:TTS] firstAudible userId=${userId} tag=${el.tagName} ttsToEarMs=${ttsToEarMs} (publishedAt=${publishedAt} audibleAt=${audibleAt})`);
+                    el.removeEventListener('playing', onPlaying);
+                };
+                el.addEventListener('playing', onPlaying, { once: true });
+            });
+        };
+        tryBind();
+        window.setTimeout(tryBind, 120);
+        window.setTimeout(tryBind, 600);
     }
 
     async finalizeRtcJoinSuccess(source, info = {}) {
@@ -761,6 +821,15 @@ export class RtcModule {
         }
 
         if (messageType === 'user_asr') {
+            const arrivedAt = Date.now();
+            const lastAt = this._lastUserAsrAt || 0;
+            const deltaMs = lastAt ? (arrivedAt - lastAt) : 0;
+            this._lastUserAsrAt = arrivedAt;
+            const isFinal = hasFinalSubtitleMarker(subtitle);
+            console.log(`[RtcTiming:ASR] arrivedAt=${arrivedAt} deltaMs=${deltaMs} final=${isFinal} text="${text}"`);
+            payload.arrivedAt = arrivedAt;
+            payload.deltaMs = deltaMs;
+            payload.isFinal = isFinal;
             this.emitRtcEvent('RTC_USER_ASR', payload);
             return;
         }
@@ -1190,6 +1259,8 @@ export class RtcModule {
             }
 
             if (mediaType === 1 || mediaType === 2 || mediaType === 3) {
+                const publishedAt = Date.now();
+                console.log(`[RtcTiming:TTS] publishedAt=${publishedAt} userId=${userId} mediaType=${mediaType}`);
                 let container = document.getElementById(`rtc-player-${userId}`);
                 if (!container) {
                     container = document.createElement('div');
@@ -1206,6 +1277,8 @@ export class RtcModule {
                 this.syncRemotePlayerContainerAudio(container);
                 window.setTimeout(() => this.syncRemotePlayerContainerAudio(container), 120);
                 window.setTimeout(() => this.syncRemotePlayerContainerAudio(container), 600);
+
+                this.bindFirstAudibleProbe(container, userId, publishedAt);
             }
         });
 
@@ -1391,6 +1464,7 @@ export class RtcModule {
                 text: '已开启游戏画面共享，智能体将每隔 5 秒分析一次画面。'
             });
             console.log('[RtcModule] 游戏画面已发布到 RTC 屏幕流');
+            this.startScreenFrameSampling(videoTrack);
         } catch (error) {
             console.error('[RtcModule] 发布游戏画面共享失败', error);
             try { videoTrack.stop(); } catch (_) {}
@@ -1403,6 +1477,7 @@ export class RtcModule {
         if (!this.gameDisplayStream && !this.isScreenSharing) {
             return;
         }
+        this.stopScreenFrameSampling();
         try {
             const screenVideoMediaType = window.VERTC.MediaType?.VIDEO;
             if (this.rtcEngine && this.isScreenSharing && screenVideoMediaType !== undefined) {
@@ -1675,6 +1750,96 @@ export class RtcModule {
                 message: error.message,
                 detail: error.detail || null
             });
+        }
+    }
+
+    startScreenFrameSampling(videoTrack) {
+        if (!videoTrack || typeof videoTrack.getSettings !== 'function') return;
+        this.stopScreenFrameSampling();
+
+        const intervalMs = 5000;
+        const apiBaseUrl = (this.runtime && this.runtime.apiBaseUrl) || DEFAULT_API_BASE_URL;
+        const sessionId = (this.runtime && this.runtime.userId) || 'default';
+
+        let videoEl = null;
+        let canvas = null;
+        let ctx = null;
+        let stream = null;
+        let inFlight = false;
+        let frameSeq = 0;
+        let disposed = false;
+
+        try {
+            stream = new MediaStream([videoTrack]);
+            videoEl = document.createElement('video');
+            videoEl.muted = true;
+            videoEl.playsInline = true;
+            videoEl.autoplay = true;
+            videoEl.srcObject = stream;
+            videoEl.play().catch(() => {});
+            canvas = document.createElement('canvas');
+            ctx = canvas.getContext('2d');
+        } catch (err) {
+            console.warn('[RtcModule] startScreenFrameSampling 初始化失败', err);
+            return;
+        }
+
+        const captureOnce = async () => {
+            if (disposed || inFlight) return;
+            const w = videoEl.videoWidth | 0;
+            const h = videoEl.videoHeight | 0;
+            if (!w || !h) return;
+            inFlight = true;
+            try {
+                const targetW = Math.min(960, w);
+                const targetH = Math.round((h / w) * targetW);
+                if (canvas.width !== targetW) canvas.width = targetW;
+                if (canvas.height !== targetH) canvas.height = targetH;
+                ctx.drawImage(videoEl, 0, 0, targetW, targetH);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                const base64Image = dataUrl.split(',')[1] || '';
+                if (!base64Image) { inFlight = false; return; }
+
+                const frameId = `frame_${Date.now()}_${++frameSeq}`;
+                const url = `${apiBaseUrl}/api/agent/screen/frame`;
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId, base64Image, mimeType: 'image/jpeg', frameId })
+                });
+                if (!resp.ok) {
+                    inFlight = false;
+                    return;
+                }
+                // 屏幕观察走"静默感知"路径：识别结果只用于注入下一轮上下文，
+                // 不向事件总线 / TTS 播报。主动播报统一交给 Reflector 的 proactive_cue。
+                await resp.json().catch(() => null);
+            } catch (err) {
+                // 静默失败，下一轮再试
+            } finally {
+                inFlight = false;
+            }
+        };
+
+        this.screenFrameSamplingTimer = setInterval(captureOnce, intervalMs);
+        this.screenFrameSamplingDispose = () => {
+            disposed = true;
+            try { if (videoEl) { videoEl.pause(); videoEl.srcObject = null; } } catch (_) {}
+            try { if (stream) stream.getTracks().forEach((t) => { try { t.stop && t.stop(); } catch (_) {} }); } catch (_) {}
+            videoEl = null; canvas = null; ctx = null; stream = null;
+        };
+        // 首次稍延迟一点，等 video 元素就绪
+        setTimeout(captureOnce, 1500);
+    }
+
+    stopScreenFrameSampling() {
+        if (this.screenFrameSamplingTimer) {
+            clearInterval(this.screenFrameSamplingTimer);
+            this.screenFrameSamplingTimer = null;
+        }
+        if (typeof this.screenFrameSamplingDispose === 'function') {
+            try { this.screenFrameSamplingDispose(); } catch (_) {}
+            this.screenFrameSamplingDispose = null;
         }
     }
 }

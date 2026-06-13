@@ -1,5 +1,6 @@
 import { config } from '../config.js';
 import { taskStore } from './taskFsmService.js';
+import { safeFetchJson } from '../utils/http.js';
 
 // Viking 检索内存缓存：key = `${userId}:${query}` -> { data, expiresAt }
 const vikingSearchCache = new Map();
@@ -30,30 +31,15 @@ async function requestVikingApi(path, options = {}) {
   assertVikingConfig();
   const url = `https://${config.vikingMemory.host}${path}`;
   try {
-    const response = await fetch(url, {
+    return await safeFetchJson(url, {
       method: options.method || 'POST',
       headers: {
         ...buildVikingHeaders(),
         ...(options.headers || {}),
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
+      timeoutMs: 5000,
     });
-    const text = await response.text();
-    let json = null;
-    try {
-      json = text ? JSON.parse(text) : null;
-    } catch (_) {
-      json = null;
-    }
-    if (!response.ok) {
-      const error = new Error(
-        json?.message || `Viking 记忆库请求失败: HTTP ${response.status}`
-      );
-      error.code = `HTTP_${response.status}`;
-      error.response = json || text;
-      throw error;
-    }
-    return json;
   } catch (error) {
     if (error.code && error.code.startsWith('HTTP_')) {
       throw error;

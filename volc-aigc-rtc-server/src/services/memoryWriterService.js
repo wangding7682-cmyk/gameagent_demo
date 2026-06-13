@@ -8,8 +8,47 @@ import {
   loadAgentPreferences,
   loadLongTermMemory,
   loadUserProfile,
+  writeLongTermMemoryOverlay,
 } from './agentProfileLoaderService.js';
 import { vikingAddEvent } from './volcVikingMemoryService.js';
+import { encodeLayerSummary, inferMemoryLayer } from './memoryLayerService.js';
+import { extractHeroEntities } from './domainRouterService.js';
+
+/**
+ * 反幻觉过滤：丢弃候选事实中含 sticky_hero 之外英雄名的条目。
+ * 例如上下文主角是「冰晶凤凰」，但 LLM 生成的 candidate.value 含「盲僧」，则该候选会被丢弃。
+ * 当 stickyHero 不存在时，跳过过滤（无法判断幻觉）。
+ */
+function filterHallucinatedCandidates(candidates = [], stickyHero = null) {
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    return { kept: [], dropped: [] };
+  }
+  const stickyName = stickyHero?.hero || '';
+  if (!stickyName) {
+    return { kept: candidates.slice(), dropped: [] };
+  }
+  const kept = [];
+  const dropped = [];
+  for (const candidate of candidates) {
+    const text = String(candidate?.value || '');
+    if (!text) {
+      kept.push(candidate);
+      continue;
+    }
+    const heroes = extractHeroEntities(text);
+    const others = heroes.filter((h) => h.hero !== stickyName);
+    if (others.length === 0) {
+      kept.push(candidate);
+    } else {
+      dropped.push({
+        ...candidate,
+        hallucinated_heroes: others.map((h) => h.hero),
+        sticky_hero: stickyName,
+      });
+    }
+  }
+  return { kept, dropped };
+}
 
 const MEMORY_ROOT = path.resolve(config.projectRoot, './data/memory');
 const ALLOWED_BUCKETS = new Set(['facts', 'preferences', 'avoidances']);
@@ -185,13 +224,13 @@ export function applyJsonPatch(document = {}, operations = []) {
 
 function getMemoryFilePath(userId = 'default') {
   ensureMemoryRoot();
-  return path.join(MEMORY_ROOT, `${safeId(userId)}.longterm.json`);
+  // 兼容旧调用：实际写入交由 writeLongTermMemoryOverlay 处理；这里仅作展示用途路径。
+  return path.join(MEMORY_ROOT, `${safeId(userId)}.overlay.longterm.json`);
 }
 
 function writeLongTermMemory(userId = 'default', nextMemory = {}) {
-  const filePath = getMemoryFilePath(userId);
-  fs.writeFileSync(filePath, `${JSON.stringify(nextMemory, null, 2)}\n`, 'utf8');
-  return filePath;
+  // 写入 overlay（带 3h TTL）；baseline 保持不变。
+  return writeLongTermMemoryOverlay(userId, nextMemory);
 }
 
 export function buildMemoryWriterSystemPrompt() {
@@ -492,7 +531,34 @@ export async function runMemoryWriterForTurn(payload = {}) {
   };
 
   const candidateResult = await generateCandidateFacts(tracePayload);
-  const { operations, newMemoryItems } = buildJsonPatchFromCandidates(currentMemory, candidateResult.candidates, {
+  const stickyHero = payload.stickyHero || null;
+  const { kept: filteredCandidates, dropped: hallucinatedCandidates } = filterHallucinatedCandidates(
+    candidateResult.candidates,
+    stickyHero,
+  );
+  if (hallucinatedCandidates.length > 0) {
+    appendAgentTrace({
+      task_id: payload.taskId || '',
+      turn_id: payload.turnId || '',
+      user_id: userId,
+      session_id: payload.sessionId || 'default',
+      source: 'memory_writer',
+      user_query: payload.userQuery || '',
+      orchestration_input: payload.userQuery || '',
+      intent: payload.intent || 'unknown',
+      trace_type: 'memory_writer_hallucination_filtered',
+      route_reason: '反幻觉过滤：丢弃含主角外英雄名的候选事实',
+      status: 'warn',
+      output: {
+        stage: 'memory_writer_filter',
+        sticky_hero: stickyHero?.hero || null,
+        dropped_count: hallucinatedCandidates.length,
+        kept_count: filteredCandidates.length,
+        dropped: hallucinatedCandidates,
+      },
+    });
+  }
+  const { operations, newMemoryItems } = buildJsonPatchFromCandidates(currentMemory, filteredCandidates, {
     turnId: payload.turnId,
     intent: payload.intent,
     userQuery: payload.userQuery,
@@ -518,8 +584,18 @@ export async function runMemoryWriterForTurn(payload = {}) {
           messages.push({ role: 'assistant', content: assistantContent });
         }
       }
+      const topCandidate = candidateResult.candidates[0];
+      const layer = inferMemoryLayer({
+        source: 'memory_writer',
+        bucket: topCandidate?.bucket || '',
+        confidence: topCandidate?.confidence || 0,
+        isEvent: false,
+      });
+      const rawSummary = messages.map((m) => `${m.role}:${m.content}`).join(' | ');
+      const layeredSummary = encodeLayerSummary(layer, rawSummary);
       vikingResult = await vikingAddEvent({
         messages,
+        summary: layeredSummary,
         user_id: userId,
         assistant_id: 'game_ai_agent',
         conversation_id: payload.sessionId || payload.turnId || '',
@@ -555,6 +631,8 @@ export function triggerMemoryWriterForTurn(payload = {}) {
     user_id: payload.userId || 'default',
     session_id: payload.sessionId || 'default',
     source: 'memory_writer',
+    user_query: payload.userQuery || '',
+    orchestration_input: payload.userQuery || '',
     intent: payload.intent || 'unknown',
     trace_type: 'memory_writer',
     route_reason: '阶段 A：MemoryWriter 异步沉淀',

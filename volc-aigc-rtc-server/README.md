@@ -1,17 +1,34 @@
 # 火山引擎 AIGC-RTC 业务服务端
 
-一个纯 Node.js 的业务服务端示例，提供以下接口：
+一个纯 Node.js 的游戏 AI 助手业务服务端。当前已从早期的 RTC/知识库示例服务，演进为统一承载 **RTC CustomLLM、Agent 编排、多源 RAG、长期记忆、屏幕感知、视频检索、自动评测** 的后端网关。
 
-- `POST /api/data/knowledge/search`
-- `POST /api/data/session/save`
-- `GET /api/data/session/list`
-- `POST /api/rtc/token`
-- `POST /api/rtc/voice-chat/start`
-- `POST /api/rtc/voice-chat/update`
-- `POST /api/rtc/voice-chat/stop`
-- `POST /api/media/douyin/video-search`
-- `POST /api/media/douyin/video-resolve`
-- `GET /health`
+## 当前能力速览
+
+- **RTC CustomLLM 桥接**：RTC 负责实时语音通道，LLM 回复由本服务的 Agent 编排链路生成，再通过 TTS 推回 RTC。
+- **Agent 编排总线**：`agentOrchestratorService` 串联上下文、主 Agent、TaskPlanner、子 Agent、SSE、Trace、Reflector 和记忆写入。
+- **复合任务规划**：`taskPlannerService` 支持 `strategy / video / smalltalk / compound / silence` 等任务形态，并带有启发式、LLM 拆解与 fallback。
+- **任务取消与恢复**：`rtcTaskEngagementService` 支持 `active / paused / cancelled / light_chat`，避免旧任务异步回写打断用户新意图。
+- **多源 RAG**：支持 `user_local / user_cloud / house_volc / default_local` 多源召回、domain 加权、动态阈值、统一 rerank 与缓存。
+- **记忆系统**：支持本地 overlay、分层记忆、Viking 记忆、RTC 实时画像和 Function Calling 更新用户画像。
+- **屏幕感知**：支持截图识别、事件上报、冷却去抖和会话白板摘要注入。
+- **评测闭环**：`/api/eval/generate` 直接调用真实编排链路，配合 `auto_eval_lite` 做分轨回归验证。
+
+## 接口矩阵
+
+| 分组 | 代表接口 |
+| --- | --- |
+| Health | `GET /health` |
+| Agent 编排 | `GET /api/agent/orchestrate/events`、`POST /api/agent/orchestrate/trigger`、`POST /api/agent/orchestrate/stream`、`POST /api/agent/orchestrate/start` |
+| Agent 会话与日志 | `GET /api/agent/session/:id`、`POST /api/agent/session/clear`、`GET /api/agent/traces`、`GET /api/agent/reflections/list` |
+| RTC | `POST /api/rtc/token`、`POST /api/rtc/voice-chat/start`、`POST /api/rtc/voice-chat/update`、`POST /api/rtc/voice-chat/stop`、`POST /api/rtc/callbacks/function-calling` |
+| RTC CustomLLM | `POST /api/agent/rtc-llm-stream`、`POST /api/agent/rtc-push-tts` |
+| 上下文与屏幕 | `POST /api/agent/context/frame`、`POST /api/agent/screen/event`、`POST /api/agent/screen/frame` |
+| 知识库 | `POST /api/data/knowledge/search`、`POST /api/data/knowledge/search-multi`、`POST /api/data/knowledge/predict-domain`、`POST /api/data/knowledge/embedding`、`GET /api/data/knowledge/health` |
+| 记忆与用户 | `POST /api/data/memory/search`、`POST /api/data/memory/save`、`GET /api/data/users/list`、`POST /api/data/users/create`、`GET /api/data/users/overlay-status`、`POST /api/data/users/reset-overlay` |
+| Viking 记忆 | `POST /api/data/viking/event/add`、`POST /api/data/viking/profile/search`、`POST /api/data/viking/event/search`、`POST /api/data/viking/memory/search`、`POST /api/data/viking/context` |
+| 媒体 | `POST /api/media/douyin/video-search`、`POST /api/media/douyin/video-resolve` |
+| 评测 | `POST /api/eval/generate` |
+| 文档 | `GET /api/readme` |
 
 ## 目录结构
 
@@ -21,11 +38,26 @@ volc-aigc-rtc-server/
     config.js
     server.js
     services/
-      tokenService.js
-      volcRtcOpenApi.js
+      agentOrchestratorService.js
+      agentContextService.js
+      taskPlannerService.js
+      retryHelperService.js
+      reflectorAgentService.js
+      multiSourceKnowledgeService.js
+      memoryLayerService.js
+      screenEventService.js
+      rtcLlmStreamService.js
+      rtcPushTtsService.js
+      videoAgentService.js
     utils/
       http.js
       volcSigner.js
+  scripts/
+    mock-*-eval.mjs
+    aggregate-rtc-timing.mjs
+  data/
+    agent-traces.jsonl
+    agent-reflections.jsonl
   vendor/
     README.md
     rtc-token-generator.example.js
@@ -50,6 +82,7 @@ VOLCENGINE_ACCESS_KEY=你的火山引擎 AK
 VOLCENGINE_SECRET_KEY=你的火山引擎 SK
 VOLC_RTC_APP_ID=AI音视频互动方案 AppId
 VOLC_RTC_APP_KEY=RTC AppKey
+ARK_API_KEY=Seed/Ark 调用 API Key
 ```
 
 注意：
@@ -60,6 +93,8 @@ VOLC_RTC_APP_KEY=RTC AppKey
 - 知识库检索和 RTC Token 是两套不同鉴权：
   - `知识库检索` 走 AK/SK + HMAC 签名
   - `RTC 进房` 走 `AccessToken.js` 生成的房间 Token
+- 如果启用 RTC CustomLLM，需要配置 `CUSTOM_LLM_BASE_URL` 指向本服务，并确保 `/api/agent/rtc-llm-stream` 可被 RTC 侧访问。
+- 记忆后端可通过 `MEMORY_BACKEND_MODE=mock|viking` 切换；Demo 场景建议先用 mock/overlay，联调云端记忆时再补 Viking API Key、ResourceId、CollectionName 等配置。
 
 如果你要启用火山知识库检索，再补这些配置：
 
@@ -376,10 +411,39 @@ npm run start
     knowledgeProvider: 'volc',
     apiBaseUrl: 'http://127.0.0.1:8788',
     allowKnowledgeFallback: true,
-    sessionSyncToServer: true
+    sessionSyncToServer: true,
+    knowledge: {
+      rerankStrategy: 'embedding', // 'embedding' | 'minmax' | 'none'
+      candidatePoolMultiplier: 3,
+      limit: 5,
+    },
   };
 </script>
 ```
+
+## 5.1 多源 RAG 架构（批次 1-3）
+
+知识库召回链路：
+
+```
+用户Query
+   ├─→ user_local (浏览器IndexedDB)   → BM25 + Embedding 余弦混合
+   ├─→ user_cloud (火山控制台用户库)  → 透传火山原生 rerank_score
+   ├─→ house_volc (火山官方库)         → 透传火山原生 rerank_score
+   └─→ default_local (内置LOL/王者)    → 本地 BM25
+        │
+        ▼ 第一阶段：来源加权 + 域加权 + 动态阈值过滤 → 候选池 (topK*3)
+        ▼ 第二阶段：统一 rerank（embedding/minmax/none）→ 消除量纲差
+        ▼ 第三阶段：rerankScore × sourceWeight × domainBonus → 最终排序 → topK
+```
+
+新增 API：
+- `POST /api/data/knowledge/search-multi`：多源召回 + rerank
+- `POST /api/data/knowledge/predict-domain`：LLM domain 预判（含规则降级）
+- `POST /api/data/knowledge/embedding`：Ark Embeddings 代理
+
+新增前端模块：
+- `src/modules/user-knowledge/`：用户外挂知识库（IndexedDB 持久化、5MB 单文件限制、上传时 LLM 预判 domain + 用户确认弹窗、自动计算并存储 chunk embedding）
 
 ## 6. 当前限制
 

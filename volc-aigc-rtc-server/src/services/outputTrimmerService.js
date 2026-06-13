@@ -106,9 +106,9 @@ export function trimMainAgentOutput(output = {}) {
   let branchWaitReply = trimText(output.branch_wait_reply, TRIM_RULES.L0_SPEAKABLE.branch_wait_reply);
 
   if (intent === 'strategy' && !branchWaitReply) {
-    branchWaitReply = needsImage ? '我来整理成图文战术卡片。' : '我来整理一份文字战术建议。';
+    branchWaitReply = needsImage ? '我整理成图文战术卡片，稍后弹出。' : '我整理可执行打法，稍后直接给你。';
   } else if (intent === 'video' && !branchWaitReply) {
-    branchWaitReply = '我来帮你找可播放视频。';
+    branchWaitReply = '我先检索匹配视频，稍后给你展示结果。';
   } else if (intent === 'smalltalk') {
     branchWaitReply = '';
   }
@@ -126,7 +126,9 @@ export function trimMainAgentOutput(output = {}) {
     understanding_reply: understandingReply,
     branch_wait_reply: branchWaitReply,
     main_tts_bundle: trimText(`${emotionalReply} ${understandingReply}`.trim(), TRIM_RULES.L0_SPEAKABLE.main_tts_bundle),
-    main_summary: trimText(output.main_summary || output.summary, TRIM_RULES.L1_UI_BRIEF.main_summary, '我会结合当前上下文给你一个简洁建议。'),
+    main_summary: intent === 'smalltalk'
+      ? trimText(output.main_summary || output.summary, TRIM_RULES.L1_UI_BRIEF.main_summary, '我先接住这个问题。')
+      : '',
     route_reason: trimText(output.route_reason, TRIM_RULES.L3_DEBUG_RAW.route_reason),
     strategy_query: intent === 'strategy' ? trimText(output.strategy_query, 120) : null,
     video_query_seed: intent === 'video' ? trimText(output.video_query_seed, 120) : null,
@@ -146,6 +148,10 @@ export function trimTacticData(data = {}) {
     title: trimText(data.title, TRIM_RULES.L2_STRUCTURED_ASSET.card_title, '战术处理建议'),
     details: trimList(data.details, {
       maxItems: TRIM_RULES.L2_STRUCTURED_ASSET.card_detail_count,
+      maxItemLength: TRIM_RULES.L2_STRUCTURED_ASSET.card_detail,
+    }),
+    avoid_pitfalls: trimList(data.avoid_pitfalls, {
+      maxItems: 3,
       maxItemLength: TRIM_RULES.L2_STRUCTURED_ASSET.card_detail,
     }),
     strategy_output_mode: strategyOutputMode,
@@ -169,5 +175,8 @@ export function trimVideoData(data = {}) {
     linkUrl: cleanText(data.linkUrl, { removeBrackets: false }),
     coverUrl: cleanText(data.coverUrl, { removeBrackets: false }),
     is_embed: Boolean(data.is_embed),
+    // 双平台搜索链接
+    bilibili_linkUrl: cleanText(data.bilibili_linkUrl, { removeBrackets: false }),
+    douyin_linkUrl: cleanText(data.douyin_linkUrl, { removeBrackets: false }),
   };
 }

@@ -1,0 +1,348 @@
+﻿[Checkpoint] 检测到未完成的评测 run: 20260612_010227
+[Checkpoint] 阶段1已完成，阶段2进度: 209/200 条
+[Checkpoint] 可用 --resume 20260612_010227 恢复，或启动新评测
+[Auto-Eval 双轨版] Run ID: 20260612_083553
+[Auto-Eval] 输出目录: C:\Users\Admin\Documents\trae_projects\游戏AI助手 web demo - 测试\auto_eval_lite\runs\20260612_083553
+[Auto-Eval] 模式: LLM | Judge 模型: ep-20260430103756-7wgz4
+[Auto-Eval] tracks_filter: video,strategy
+[Auto-Eval] profile: full（全量评测集 / 重大版本）
+[Auto-Eval] Agent URL: http://127.0.0.1:8788/api/eval/generate
+[Auto-Eval] 样本：全量=50 → profile=full 命中=50 条
+
+[Auto-Eval] === 阶段 1：调用 Agent 生成预测 ===
+  [1/50] AGC-001 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [2/50] AGC-002 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [3/50] AGC-003 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [4/50] AGC-004 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [5/50] AGC-005 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [6/50] AGC-006 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [7/50] AGC-007 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [8/50] AGC-008 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [9/50] AGC-009 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=92
+  [10/50] AGC-010 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=75
+  [11/50] AGC-011 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [12/50] AGC-012 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [13/50] AGC-013 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [14/50] AGC-014 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [15/50] AGC-015 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [16/50] AGC-016 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=43
+  [17/50] AGC-017 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=45
+  [18/50] AGC-018 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=52
+  [19/50] AGC-019 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [20/50] AGC-020 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [21/50] AGC-021 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [22/50] AGC-022 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [23/50] AGC-023 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [24/50] AGC-024 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [25/50] AGC-025 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [26/50] AGC-026 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [27/50] AGC-027 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [28/50] AGC-028 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [29/50] AGC-029 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [30/50] AGC-030 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [31/50] AGC-031 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=2(compound) ms_len=18
+  [32/50] AGC-032 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [33/50] AGC-033 ... OK | intent=video mode=single | 慢路径: tactic=- video=√(unk) task_plan=1(single)/forced=1(single) ms_len=18
+  [34/50] AGC-034 ... OK | intent=video mode=single | 慢路径: tactic=- video=√(unk) task_plan=1(single)/forced=1(single) ms_len=18
+  [35/50] AGC-035 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=50
+  [36/50] AGC-036 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=62
+  [37/50] AGC-037 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=69
+  [38/50] AGC-038 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=54
+  [39/50] AGC-039 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=78
+  [40/50] AGC-040 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=67
+  [41/50] AGC-041 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=96
+  [42/50] AGC-042 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=1(single) ms_len=18
+  [43/50] AGC-043 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [44/50] AGC-044 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [45/50] AGC-045 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [46/50] AGC-046 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [47/50] AGC-047 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [48/50] AGC-048 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=2(compound) ms_len=18
+  [49/50] AGC-049 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=55
+  [50/50] AGC-050 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=59
+
+[Auto-Eval] === 阶段 2：双轨打分（LLM模式） ===
+  [1/50][1/2] AGC-001 <video     > ...[ArkChat][timing] ttfb=22576ms body=1ms total=22577ms prompt=1166 completion=870 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [1/50][2/2] AGC-001 <strategy  > ...[ArkChat][timing] ttfb=29611ms body=0ms total=29611ms prompt=1324 completion=1247 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-001 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [2/50][1/2] AGC-002 <video     > ...[ArkChat][timing] ttfb=19498ms body=0ms total=19498ms prompt=1166 completion=847 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [2/50][2/2] AGC-002 <strategy  > ...[ArkChat][timing] ttfb=51194ms body=0ms total=51194ms prompt=1317 completion=2010 model=ep-20260430103756-7wgz4
+ fail overall=6
+    → AGC-002 综合: video=0 | strategy=6 | 平均=3 | 短板=video.query_rewrite_quality=0
+  [3/50][1/2] AGC-003 <video     > ...[ArkChat][timing] ttfb=32881ms body=0ms total=32881ms prompt=1167 completion=1405 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [3/50][2/2] AGC-003 <strategy  > ...[ArkChat][timing] ttfb=28839ms body=1ms total=28840ms prompt=1316 completion=1321 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-003 综合: video=0 | strategy=5 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [4/50][1/2] AGC-004 <video     > ...[ArkChat][timing] ttfb=17139ms body=1ms total=17140ms prompt=1165 completion=629 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [4/50][2/2] AGC-004 <strategy  > ...[ArkChat][timing] ttfb=44015ms body=0ms total=44015ms prompt=1322 completion=1906 model=ep-20260430103756-7wgz4
+ fail overall=2
+    → AGC-004 综合: video=0 | strategy=2 | 平均=1 | 短板=video.query_rewrite_quality=0
+  [5/50][1/2] AGC-005 <video     > ...[ArkChat][timing] ttfb=17236ms body=0ms total=17236ms prompt=1179 completion=673 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [5/50][2/2] AGC-005 <strategy  > ...[ArkChat][timing] ttfb=48887ms body=1ms total=48888ms prompt=1344 completion=1869 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-005 综合: video=0 | strategy=5 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [6/50][1/2] AGC-006 <video     > ...[ArkChat][timing] ttfb=16770ms body=1ms total=16771ms prompt=1178 completion=647 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [6/50][2/2] AGC-006 <strategy  > ...[ArkChat][timing] ttfb=34712ms body=0ms total=34712ms prompt=1327 completion=1359 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-006 综合: video=0 | strategy=5 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [7/50][1/2] AGC-007 <video     > ...[ArkChat][timing] ttfb=16557ms body=1ms total=16558ms prompt=1174 completion=678 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [7/50][2/2] AGC-007 <strategy  > ...[ArkChat][timing] ttfb=26949ms body=1ms total=26950ms prompt=1323 completion=1097 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-007 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [8/50][1/2] AGC-008 <video     > ...[ArkChat][timing] ttfb=21460ms body=1ms total=21461ms prompt=1177 completion=699 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [8/50][2/2] AGC-008 <strategy  > ...[ArkChat][timing] ttfb=35908ms body=1ms total=35909ms prompt=1319 completion=1437 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-008 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [9/50][1/2] AGC-009 <video     > ...[ArkChat][timing] ttfb=14953ms body=0ms total=14953ms prompt=1176 completion=652 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [9/50][2/2] AGC-009 <strategy  > ...[ArkChat][timing] ttfb=18615ms body=0ms total=18615ms prompt=1208 completion=667 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-009 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [10/50][1/2] AGC-010 <video     > ...[ArkChat][timing] ttfb=17360ms body=1ms total=17361ms prompt=1177 completion=655 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [10/50][2/2] AGC-010 <strategy  > ...[ArkChat][timing] ttfb=21319ms body=0ms total=21319ms prompt=1196 completion=797 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-010 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [11/50][1/2] AGC-011 <video     > ...[ArkChat][timing] ttfb=27929ms body=1ms total=27930ms prompt=1174 completion=1004 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [11/50][2/2] AGC-011 <strategy  > ...[ArkChat][timing] ttfb=45806ms body=0ms total=45806ms prompt=1306 completion=1593 model=ep-20260430103756-7wgz4
+ fail overall=6
+    → AGC-011 综合: video=0 | strategy=6 | 平均=3 | 短板=video.query_rewrite_quality=0
+  [12/50][1/2] AGC-012 <video     > ...[ArkChat][timing] ttfb=28025ms body=1ms total=28026ms prompt=1180 completion=1148 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [12/50][2/2] AGC-012 <strategy  > ...[ArkChat][timing] ttfb=37854ms body=1ms total=37855ms prompt=1294 completion=1268 model=ep-20260430103756-7wgz4
+ fail overall=3
+    → AGC-012 综合: video=0 | strategy=3 | 平均=1.5 | 短板=video.query_rewrite_quality=0
+  [13/50][1/2] AGC-013 <video     > ...[ArkChat][timing] ttfb=19480ms body=1ms total=19481ms prompt=1176 completion=753 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [13/50][2/2] AGC-013 <strategy  > ...[ArkChat][timing] ttfb=32942ms body=0ms total=32942ms prompt=1329 completion=1444 model=ep-20260430103756-7wgz4
+ fail overall=3
+    → AGC-013 综合: video=0 | strategy=3 | 平均=1.5 | 短板=video.query_rewrite_quality=0
+  [14/50][1/2] AGC-014 <video     > ...[ArkChat][timing] ttfb=37454ms body=0ms total=37454ms prompt=1183 completion=1470 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [14/50][2/2] AGC-014 <strategy  > ...[ArkChat][timing] ttfb=36719ms body=0ms total=36719ms prompt=1341 completion=1464 model=ep-20260430103756-7wgz4
+ fail overall=7
+    → AGC-014 综合: video=0 | strategy=7 | 平均=3.5 | 短板=video.query_rewrite_quality=0
+  [15/50][1/2] AGC-015 <video     > ...[ArkChat][timing] ttfb=15411ms body=1ms total=15412ms prompt=1194 completion=663 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [15/50][2/2] AGC-015 <strategy  > ...[ArkChat][timing] ttfb=35499ms body=0ms total=35499ms prompt=1355 completion=1340 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-015 综合: video=0 | strategy=5 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [16/50][1/2] AGC-016 <video     > ...[ArkChat][timing] ttfb=42766ms body=0ms total=42766ms prompt=1175 completion=1720 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [16/50][2/2] AGC-016 <strategy  > ...[ArkChat][timing] ttfb=29881ms body=0ms total=29881ms prompt=1184 completion=1055 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-016 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [17/50][1/2] AGC-017 <video     > ...[ArkChat][timing] ttfb=22786ms body=1ms total=22787ms prompt=1174 completion=837 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [17/50][2/2] AGC-017 <strategy  > ...[ArkChat][timing] ttfb=22290ms body=0ms total=22290ms prompt=1183 completion=770 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-017 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [18/50][1/2] AGC-018 <video     > ...[ArkChat][timing] ttfb=19345ms body=1ms total=19346ms prompt=1172 completion=776 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [18/50][2/2] AGC-018 <strategy  > ...[ArkChat][timing] ttfb=19215ms body=1ms total=19216ms prompt=1186 completion=849 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-018 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [19/50][1/2] AGC-019 <video     > ...[ArkChat][timing] ttfb=19481ms body=0ms total=19481ms prompt=1167 completion=841 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [19/50][2/2] AGC-019 <strategy  > ...[ArkChat][timing] ttfb=45603ms body=1ms total=45604ms prompt=1303 completion=1664 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-019 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [20/50][1/2] AGC-020 <video     > ...[ArkChat][timing] ttfb=29685ms body=1ms total=29686ms prompt=1168 completion=1200 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [20/50][2/2] AGC-020 <strategy  > ...[ArkChat][timing] ttfb=33793ms body=0ms total=33793ms prompt=1317 completion=1300 model=ep-20260430103756-7wgz4
+ fail overall=6
+    → AGC-020 综合: video=0 | strategy=6 | 平均=3 | 短板=video.query_rewrite_quality=0
+  [21/50][1/2] AGC-021 <video     > ...[ArkChat][timing] ttfb=25144ms body=1ms total=25145ms prompt=1168 completion=1152 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [21/50][2/2] AGC-021 <strategy  > ...[ArkChat][timing] ttfb=28172ms body=0ms total=28172ms prompt=1303 completion=1341 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-021 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [22/50][1/2] AGC-022 <video     > ...[ArkChat][timing] ttfb=43950ms body=1ms total=43951ms prompt=1167 completion=1934 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [22/50][2/2] AGC-022 <strategy  > ...[ArkChat][timing] ttfb=30900ms body=1ms total=30901ms prompt=1291 completion=1262 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-022 综合: video=0 | strategy=5 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [23/50][1/2] AGC-023 <video     > ...[ArkChat][timing] ttfb=17782ms body=1ms total=17783ms prompt=1166 completion=777 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [23/50][2/2] AGC-023 <strategy  > ...[ArkChat][timing] ttfb=32701ms body=0ms total=32701ms prompt=1301 completion=1338 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-023 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [24/50][1/2] AGC-024 <video     > ...[ArkChat][timing] ttfb=16640ms body=0ms total=16641ms prompt=1166 completion=744 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [24/50][2/2] AGC-024 <strategy  > ...[ArkChat][timing] ttfb=31983ms body=1ms total=31984ms prompt=1296 completion=1331 model=ep-20260430103756-7wgz4
+ fail overall=6
+    → AGC-024 综合: video=0 | strategy=6 | 平均=3 | 短板=video.query_rewrite_quality=0
+  [25/50][1/2] AGC-025 <video     > ...[ArkChat][timing] ttfb=32483ms body=1ms total=32484ms prompt=1165 completion=1442 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [25/50][2/2] AGC-025 <strategy  > ...[ArkChat][timing] ttfb=29165ms body=0ms total=29165ms prompt=1318 completion=1407 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-025 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [26/50][1/2] AGC-026 <video     > ...[ArkChat][timing] ttfb=17186ms body=1ms total=17187ms prompt=1166 completion=837 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [26/50][2/2] AGC-026 <strategy  > ...[ArkChat][timing] ttfb=39361ms body=0ms total=39361ms prompt=1288 completion=1655 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-026 综合: video=0 | strategy=5 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [27/50][1/2] AGC-027 <video     > ...[ArkChat][timing] ttfb=27192ms body=1ms total=27193ms prompt=1169 completion=1020 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [27/50][2/2] AGC-027 <strategy  > ...[ArkChat][timing] ttfb=39025ms body=1ms total=39026ms prompt=1301 completion=1569 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-027 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [28/50][1/2] AGC-028 <video     > ...[ArkChat][timing] ttfb=17247ms body=1ms total=17248ms prompt=1166 completion=756 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [28/50][2/2] AGC-028 <strategy  > ...[ArkChat][timing] ttfb=37382ms body=1ms total=37383ms prompt=1288 completion=1396 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-028 综合: video=0 | strategy=5 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [29/50][1/2] AGC-029 <video     > ...[ArkChat][timing] ttfb=18777ms body=0ms total=18777ms prompt=1167 completion=703 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [29/50][2/2] AGC-029 <strategy  > ...[ArkChat][timing] ttfb=42802ms body=1ms total=42803ms prompt=1295 completion=1984 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-029 综合: video=0 | strategy=5 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [30/50][1/2] AGC-030 <video     > ...[ArkChat][timing] ttfb=17293ms body=1ms total=17294ms prompt=1166 completion=680 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [30/50][2/2] AGC-030 <strategy  > ...[ArkChat][timing] ttfb=28110ms body=1ms total=28111ms prompt=1294 completion=1272 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-030 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [31/50][1/2] AGC-031 <video     > ...[ArkChat][timing] ttfb=25408ms body=0ms total=25408ms prompt=1184 completion=1045 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [31/50][2/2] AGC-031 <strategy  > ...[ArkChat][timing] ttfb=34637ms body=1ms total=34638ms prompt=1271 completion=1492 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-031 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [32/50][1/2] AGC-032 <video     > ...[ArkChat][timing] ttfb=27124ms body=1ms total=27125ms prompt=1186 completion=1260 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [32/50][2/2] AGC-032 <strategy  > ...[ArkChat][timing] ttfb=30643ms body=1ms total=30644ms prompt=1299 completion=1347 model=ep-20260430103756-7wgz4
+ fail overall=2
+    → AGC-032 综合: video=0 | strategy=2 | 平均=1 | 短板=video.query_rewrite_quality=0
+  [33/50][1/2] AGC-033 <video     > ...[ArkChat][timing] ttfb=23678ms body=1ms total=23679ms prompt=1325 completion=1114 model=ep-20260430103756-7wgz4
+ pass overall=10
+  [33/50][2/2] AGC-033 <strategy  > ...[ArkChat][timing] ttfb=18283ms body=1ms total=18284ms prompt=1173 completion=804 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-033 综合: video=10 | strategy=0 | 平均=5 | 短板=strategy.tactical_correctness=0
+  [34/50][1/2] AGC-034 <video     > ...[ArkChat][timing] ttfb=16954ms body=1ms total=16955ms prompt=1365 completion=766 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [34/50][2/2] AGC-034 <strategy  > ...[ArkChat][timing] ttfb=12469ms body=1ms total=12470ms prompt=1170 completion=566 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-034 综合: video=9 | strategy=0 | 平均=4.5 | 短板=strategy.tactical_correctness=0
+  [35/50][1/2] AGC-035 <video     > ...[ArkChat][timing] ttfb=27277ms body=1ms total=27278ms prompt=1172 completion=1066 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [35/50][2/2] AGC-035 <strategy  > ...[ArkChat][timing] ttfb=21298ms body=0ms total=21298ms prompt=1181 completion=942 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-035 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [36/50][1/2] AGC-036 <video     > ...[ArkChat][timing] ttfb=16172ms body=0ms total=16172ms prompt=1175 completion=692 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [36/50][2/2] AGC-036 <strategy  > ...[ArkChat][timing] ttfb=24353ms body=0ms total=24353ms prompt=1182 completion=982 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-036 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [37/50][1/2] AGC-037 <video     > ...[ArkChat][timing] ttfb=27996ms body=0ms total=27996ms prompt=1170 completion=1245 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [37/50][2/2] AGC-037 <strategy  > ...[ArkChat][timing] ttfb=14770ms body=1ms total=14771ms prompt=1169 completion=654 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-037 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [38/50][1/2] AGC-038 <video     > ...[ArkChat][timing] ttfb=20977ms body=0ms total=20977ms prompt=1175 completion=972 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [38/50][2/2] AGC-038 <strategy  > ...[ArkChat][timing] ttfb=12368ms body=0ms total=12368ms prompt=1182 completion=552 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-038 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [39/50][1/2] AGC-039 <video     > ...[ArkChat][timing] ttfb=32891ms body=1ms total=32892ms prompt=1170 completion=1420 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [39/50][2/2] AGC-039 <strategy  > ...[ArkChat][timing] ttfb=15392ms body=1ms total=15393ms prompt=1172 completion=568 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-039 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [40/50][1/2] AGC-040 <video     > ...[ArkChat][timing] ttfb=32517ms body=1ms total=32518ms prompt=1176 completion=1303 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [40/50][2/2] AGC-040 <strategy  > ...[ArkChat][timing] ttfb=21366ms body=0ms total=21367ms prompt=1180 completion=984 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-040 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [41/50][1/2] AGC-041 <video     > ...[ArkChat][timing] ttfb=28349ms body=1ms total=28350ms prompt=1179 completion=1305 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [41/50][2/2] AGC-041 <strategy  > ...[ArkChat][timing] ttfb=18865ms body=0ms total=18865ms prompt=1181 completion=807 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-041 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [42/50][1/2] AGC-042 <video     > ...[ArkChat][timing] ttfb=17742ms body=1ms total=17743ms prompt=1171 completion=721 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [42/50][2/2] AGC-042 <strategy  > ...[ArkChat][timing] ttfb=36980ms body=0ms total=36980ms prompt=1290 completion=1462 model=ep-20260430103756-7wgz4
+ fail overall=2
+    → AGC-042 综合: video=0 | strategy=2 | 平均=1 | 短板=video.query_rewrite_quality=0
+  [43/50][1/2] AGC-043 <video     > ...[ArkChat][timing] ttfb=19807ms body=0ms total=19807ms prompt=1178 completion=900 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [43/50][2/2] AGC-043 <strategy  > ...[ArkChat][timing] ttfb=27555ms body=0ms total=27555ms prompt=1315 completion=1097 model=ep-20260430103756-7wgz4
+ fail overall=6
+    → AGC-043 综合: video=0 | strategy=6 | 平均=3 | 短板=video.query_rewrite_quality=0
+  [44/50][1/2] AGC-044 <video     > ...[ArkChat][timing] ttfb=23911ms body=1ms total=23912ms prompt=1174 completion=957 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [44/50][2/2] AGC-044 <strategy  > ...[ArkChat][timing] ttfb=29442ms body=0ms total=29442ms prompt=1317 completion=1190 model=ep-20260430103756-7wgz4
+ fail overall=7
+    → AGC-044 综合: video=0 | strategy=7 | 平均=3.5 | 短板=video.query_rewrite_quality=0
+  [45/50][1/2] AGC-045 <video     > ...[ArkChat][timing] ttfb=16656ms body=0ms total=16656ms prompt=1185 completion=669 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [45/50][2/2] AGC-045 <strategy  > ...[ArkChat][timing] ttfb=32769ms body=1ms total=32770ms prompt=1326 completion=1192 model=ep-20260430103756-7wgz4
+ fail overall=6
+    → AGC-045 综合: video=0 | strategy=6 | 平均=3 | 短板=video.query_rewrite_quality=0
+  [46/50][1/2] AGC-046 <video     > ...[ArkChat][timing] ttfb=17812ms body=0ms total=17812ms prompt=1174 completion=680 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [46/50][2/2] AGC-046 <strategy  > ...[ArkChat][timing] ttfb=33624ms body=1ms total=33625ms prompt=1307 completion=1440 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-046 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [47/50][1/2] AGC-047 <video     > ...[ArkChat][timing] ttfb=18279ms body=1ms total=18280ms prompt=1182 completion=695 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [47/50][2/2] AGC-047 <strategy  > ...[ArkChat][timing] ttfb=38344ms body=0ms total=38344ms prompt=1300 completion=1491 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-047 综合: video=0 | strategy=5 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [48/50][1/2] AGC-048 <video     > ...[ArkChat][timing] ttfb=17525ms body=1ms total=17526ms prompt=1183 completion=717 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [48/50][2/2] AGC-048 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（60000ms）: https://ark.cn-beiji)，5s 后第 2/4 次尝试...
+[ArkChat][timing] ttfb=31581ms body=0ms total=31581ms prompt=1312 completion=1571 model=ep-20260430103756-7wgz4
+ fail overall=4
+    → AGC-048 综合: video=0 | strategy=4 | 平均=2 | 短板=video.query_rewrite_quality=0
+  [49/50][1/2] AGC-049 <video     > ...[ArkChat][timing] ttfb=21967ms body=0ms total=21967ms prompt=1171 completion=1041 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [49/50][2/2] AGC-049 <strategy  > ...[ArkChat][timing] ttfb=17050ms body=1ms total=17051ms prompt=1174 completion=752 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-049 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [50/50][1/2] AGC-050 <video     > ...[ArkChat][timing] ttfb=28162ms body=0ms total=28162ms prompt=1176 completion=1298 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [50/50][2/2] AGC-050 <strategy  > ...[ArkChat][timing] ttfb=18540ms body=1ms total=18541ms prompt=1178 completion=725 model=ep-20260430103756-7wgz4
+ fail overall=0
+    → AGC-050 综合: video=0 | strategy=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+
+============================================================
+[Auto-Eval 双轨版] 完成！
+  Cases: 50 | 评测行: 100 | 失败: 0 | parse_error: 0
+  总分（case 级均值）: 1.74
+  分轨摘要:
+    [video] N=50 pass=2/50 (4%) avg=0.38
+        query_rewrite_quality: 0.38
+        platform_adaptation: 0.38
+        semantic_relevance: 0.36 ←短板
+        result_completeness: 0.38
+        routing_correctness: 1.06
+        低分: AGC-001=0, AGC-002=0, AGC-003=0, AGC-004=0, AGC-005=0, AGC-006=0, AGC-007=0, AGC-008=0, AGC-009=0, AGC-010=0
+    [strategy] N=50 pass=0/50 (0%) avg=3.1
+        tactical_correctness: 2.68
+        quantification: 2.28
+        avoid_pitfalls: 1.42 ←短板
+        conclusion_first: 4.16
+        voice_friendliness: 6.78
+        低分: AGC-001=4, AGC-003=5, AGC-004=2, AGC-005=5, AGC-006=5, AGC-007=4, AGC-008=4, AGC-009=0, AGC-010=0, AGC-012=3
+  路由准确率: 46/50 (92%)
+  路由不匹配:
+    AGC-011: 期望=smalltalk 实际=strategy | 这个版本玩什么位置好上分？AD还是中单更香？
+    AGC-012: 期望=smalltalk 实际=strategy | 这套出装真的好吗？我看别人都这么出但我用了总输
+    AGC-031: 期望=video 实际=strategy | 亚索E接Q连招视频教学有没有
+    AGC-032: 期望=video 实际=strategy | 瑞兹连招怎么按键，给我看个示范
+  复合拆解准确率（端到端）: 0/0 (null%)
+    └ TaskPlanner 拆解能力（绕开路由短路）: 0/0 (null%)
+    └ 被路由短路损耗: 0 case（拆解能力 OK，但主链路 task_plan 为空）
+  Audit Top 5:
+    ×48  video_data.linkUrl 为空
+============================================================
+结果目录: C:\Users\Admin\Documents\trae_projects\游戏AI助手 web demo - 测试\auto_eval_lite\runs\20260612_083553

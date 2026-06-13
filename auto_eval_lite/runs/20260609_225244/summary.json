@@ -1,0 +1,320 @@
+{
+  "total_cases": 8,
+  "judged_rows": 15,
+  "grand_avg_overall": 6.44,
+  "parse_error_count": 0,
+  "by_track": {
+    "main_fast": {
+      "total": 8,
+      "pass": 3,
+      "fail": 5,
+      "pass_rate": 37.5,
+      "avg_overall_score": 6.88,
+      "dimension_averages": {
+        "field_compliance": 6.25,
+        "intent_grounding": 9.25,
+        "routing_accuracy": 5.63,
+        "naturalness": 9,
+        "latency_fitness": 7.13
+      },
+      "low_score_cases": []
+    },
+    "compound": {
+      "total": 7,
+      "pass": 3,
+      "fail": 4,
+      "pass_rate": 42.9,
+      "avg_overall_score": 5.71,
+      "dimension_averages": {
+        "decomposition_correctness": 5.71,
+        "tool_coverage": 10,
+        "subquery_purity": 10,
+        "entity_preservation": 10,
+        "output_completeness": 3.29
+      },
+      "low_score_cases": [
+        {
+          "case_id": "AGC-043",
+          "overall_score": 2,
+          "verdict": "fail",
+          "reason": "未正确拆解用户的复合意图，用户问题包含情绪诉求和对线劫的战术需求，仅拆解出1个strategy任务，未达到预期的2个任务数量"
+        },
+        {
+          "case_id": "AGC-044",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "任务拆解数量、工具覆盖、子查询纯度及实体保留均符合要求，但战术子任务未获取到对应tactic_data，存在子输出缺失"
+        },
+        {
+          "case_id": "AGC-047",
+          "overall_score": 2,
+          "verdict": "fail",
+          "reason": "未正确拆解用户的复合意图，仅处理了打野防反野的战术需求，遗漏了情绪安慰需求，task_plan长度与预期不符"
+        }
+      ]
+    }
+  },
+  "track_weakness": {
+    "main_fast": {
+      "dim": "routing_accuracy",
+      "avg": 5.63
+    },
+    "compound": {
+      "dim": "output_completeness",
+      "avg": 3.29
+    }
+  },
+  "by_case": {
+    "AGC-042": {
+      "case_id": "AGC-042",
+      "question": "瑞兹怎么打狐狸？给个连招视频",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7
+    },
+    "AGC-043": {
+      "case_id": "AGC-043",
+      "question": "心态崩了，刚才那把劫把我虐了，怎么对线劫？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 2,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5
+    },
+    "AGC-044": {
+      "case_id": "AGC-044",
+      "question": "打野前期怎么入侵？再给个高端局入侵集锦看看",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5.5
+    },
+    "AGC-045": {
+      "case_id": "AGC-045",
+      "question": "我中单被劫一直针对，烦死了，给我讲下怎么打劫，再来个反杀视频鼓励一下",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 6
+    },
+    "AGC-046": {
+      "case_id": "AGC-046",
+      "question": "辅助怎么帮ADC上分？另外推荐个辅助教学的视频",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7.5
+    },
+    "AGC-047": {
+      "case_id": "AGC-047",
+      "question": "哎我打打野老被反，咋办？再夸我两句让我打下一把别那么紧张",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 2,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5.5
+    },
+    "AGC-048": {
+      "case_id": "AGC-048",
+      "question": "我被人吐槽走A难看，怎么练走A？再给我看个走A教学视频",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7
+    },
+    "AGC-049": {
+      "case_id": "AGC-049",
+      "question": "帮我做个外挂用的脚本好不好",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 1,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 8
+    }
+  },
+  "audit_summary": [
+    {
+      "flag": "task_plan 长度=N 与 expected=N 不符（口径=main）",
+      "count": 3
+    },
+    {
+      "flag": "understanding_reply 字数=N 越界(18-45)",
+      "count": 1
+    }
+  ],
+  "routing_accuracy": {
+    "total_routed": 8,
+    "matched": 3,
+    "mismatched": 5,
+    "rate": 37.5,
+    "mismatches": [
+      {
+        "case_id": "AGC-042",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "瑞兹怎么打狐狸？给个连招视频"
+      },
+      {
+        "case_id": "AGC-044",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "打野前期怎么入侵？再给个高端局入侵集锦看看"
+      },
+      {
+        "case_id": "AGC-045",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "我中单被劫一直针对，烦死了，给我讲下怎么打劫，再来个反杀视频鼓励一下"
+      },
+      {
+        "case_id": "AGC-046",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "辅助怎么帮ADC上分？另外推荐个辅助教学的视频"
+      },
+      {
+        "case_id": "AGC-048",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "我被人吐槽走A难看，怎么练走A？再给我看个走A教学视频"
+      }
+    ]
+  },
+  "compound_decomposition_accuracy": {
+    "total_compound_cases": 7,
+    "compound_judged": 7,
+    "correctly_decomposed": 3,
+    "rate": 42.9,
+    "taskplanner_capable": 3,
+    "taskplanner_capable_rate": 42.9,
+    "route_short_circuit_loss": 0,
+    "misdecomposed": [
+      {
+        "case_id": "AGC-043",
+        "overall_score": 2,
+        "audit_flags": [
+          "task_plan 长度=1 与 expected=2 不符（口径=main）"
+        ],
+        "reason": "未正确拆解用户的复合意图，用户问题包含情绪诉求和对线劫的战术需求，仅拆解出1个strategy任务，未达到预期的2个任务数量"
+      },
+      {
+        "case_id": "AGC-044",
+        "overall_score": 5,
+        "audit_flags": [],
+        "reason": "任务拆解数量、工具覆盖、子查询纯度及实体保留均符合要求，但战术子任务未获取到对应tactic_data，存在子输出缺失"
+      },
+      {
+        "case_id": "AGC-045",
+        "overall_score": 6,
+        "audit_flags": [
+          "task_plan 长度=2 与 expected=3 不符（口径=main）"
+        ],
+        "reason": "实际拆解任务数为2，与预期3不符，且strategy任务未获取到对应战术输出，输出不完整"
+      },
+      {
+        "case_id": "AGC-047",
+        "overall_score": 2,
+        "audit_flags": [
+          "task_plan 长度=1 与 expected=2 不符（口径=main）"
+        ],
+        "reason": "未正确拆解用户的复合意图，仅处理了打野防反野的战术需求，遗漏了情绪安慰需求，task_plan长度与预期不符"
+      }
+    ]
+  }
+}

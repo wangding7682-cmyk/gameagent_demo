@@ -1,4 +1,5 @@
 import { assertTtsConfig, config } from '../config.js';
+import { safeFetchRaw } from '../utils/http.js';
 
 function extractJsonObjects(streamText = '') {
   const objects = [];
@@ -109,7 +110,7 @@ export async function synthesizeVolcTts(body = {}) {
     },
   };
 
-  const response = await fetch(`https://${config.tts.host}${config.tts.path}`, {
+  const response = await safeFetchRaw(`https://${config.tts.host}${config.tts.path}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -120,10 +121,12 @@ export async function synthesizeVolcTts(body = {}) {
       'X-Control-Require-Usage-Tokens-Return': '*',
     },
     body: JSON.stringify(requestBody),
+    timeoutMs: 15000,
   });
 
   if (!response.ok) {
     const errorText = await response.text();
+    response._clearTimeout?.();
     throw new Error(`火山 TTS 接口返回 HTTP ${response.status}: ${errorText}`);
   }
 
@@ -134,6 +137,7 @@ export async function synthesizeVolcTts(body = {}) {
     const chunks = [];
     while (true) {
       const { done, value } = await reader.read();
+      response._resetTimeout?.();
       if (done) break;
       chunks.push(value);
     }
@@ -142,6 +146,8 @@ export async function synthesizeVolcTts(body = {}) {
     streamText = combined.toString('utf8');
   } catch (_) {
     streamText = await response.text();
+  } finally {
+    response._clearTimeout?.();
   }
 
   const messages = extractJsonObjects(streamText);

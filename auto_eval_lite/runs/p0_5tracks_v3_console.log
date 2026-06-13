@@ -1,0 +1,325 @@
+﻿[Auto-Eval 双轨版] Run ID: 20260611_231334
+[Auto-Eval] 输出目录: C:\Users\Admin\Documents\trae_projects\游戏AI助手 web demo - 测试\auto_eval_lite\runs\20260611_231334
+[Auto-Eval] 模式: LLM | Judge 模型: ep-20260430103756-7wgz4
+[Auto-Eval] tracks_filter: main_fast,compound,strategy,video,smalltalk
+[Auto-Eval] profile: full（全量评测集 / 重大版本）
+[Auto-Eval] Agent URL: http://127.0.0.1:8788/api/eval/generate
+[Auto-Eval] 样本：全量=50 → profile=full 命中=50 条
+
+[Auto-Eval] === 阶段 1：调用 Agent 生成预测 ===
+  [1/50] AGC-001 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [2/50] AGC-002 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [3/50] AGC-003 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [4/50] AGC-004 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [5/50] AGC-005 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [6/50] AGC-006 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [7/50] AGC-007 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [8/50] AGC-008 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [9/50] AGC-009 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=91
+  [10/50] AGC-010 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=66
+  [11/50] AGC-011 ... OK | intent=strategy mode=single | 慢路径: tactic=√(3) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [12/50] AGC-012 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [13/50] AGC-013 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [14/50] AGC-014 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [15/50] AGC-015 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [16/50] AGC-016 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=57
+  [17/50] AGC-017 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=43
+  [18/50] AGC-018 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=60
+  [19/50] AGC-019 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [20/50] AGC-020 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [21/50] AGC-021 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [22/50] AGC-022 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [23/50] AGC-023 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [24/50] AGC-024 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [25/50] AGC-025 ... OK | intent=strategy mode=single | 慢路径: tactic=√(5) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [26/50] AGC-026 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [27/50] AGC-027 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [28/50] AGC-028 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [29/50] AGC-029 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [30/50] AGC-030 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [31/50] AGC-031 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=2(compound) ms_len=18
+  [32/50] AGC-032 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(3) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [33/50] AGC-033 ... OK | intent=video mode=single | 慢路径: tactic=- video=√(unk) task_plan=1(single)/forced=1(single) ms_len=18
+  [34/50] AGC-034 ... OK | intent=video mode=single | 慢路径: tactic=- video=√(unk) task_plan=1(single)/forced=1(single) ms_len=18
+  [35/50] AGC-035 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=41
+  [36/50] AGC-036 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [37/50] AGC-037 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=55
+  [38/50] AGC-038 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=59
+  [39/50] AGC-039 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=80
+  [40/50] AGC-040 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=80
+  [41/50] AGC-041 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=78
+  [42/50] AGC-042 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=1(single) ms_len=18
+  [43/50] AGC-043 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [44/50] AGC-044 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [45/50] AGC-045 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [46/50] AGC-046 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=2(compound) ms_len=18
+  [47/50] AGC-047 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [48/50] AGC-048 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [49/50] AGC-049 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=46
+  [50/50] AGC-050 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=57
+
+[Auto-Eval] === 阶段 2：双轨打分（LLM模式） ===
+  [1/50][1/4] AGC-001 <main_fast > ...[ArkChat][timing] ttfb=15103ms body=0ms total=15104ms prompt=971 completion=810 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [1/50][2/4] AGC-001 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [1/50][3/4] AGC-001 <video     > ...[ArkChat][timing] ttfb=16083ms body=1ms total=16084ms prompt=1166 completion=758 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [1/50][4/4] AGC-001 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-001 综合: main_fast=9 | video=0 | 平均=4.5 | 短板=video.query_rewrite_quality=0
+  [2/50][1/4] AGC-002 <main_fast > ...    [WARN] Judge<main_fast> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+[ArkChat][timing] ttfb=22163ms body=0ms total=22163ms prompt=976 completion=942 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [2/50][2/4] AGC-002 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [2/50][3/4] AGC-002 <video     > ...[ArkChat][timing] ttfb=16350ms body=1ms total=16351ms prompt=1166 completion=660 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [2/50][4/4] AGC-002 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-002 综合: main_fast=9 | video=0 | 平均=4.5 | 短板=video.query_rewrite_quality=0
+  [3/50][1/4] AGC-003 <main_fast > ...[ArkChat][timing] ttfb=20601ms body=0ms total=20601ms prompt=968 completion=906 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [3/50][2/4] AGC-003 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [3/50][3/4] AGC-003 <video     > ...[ArkChat][timing] ttfb=17775ms body=1ms total=17776ms prompt=1167 completion=765 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [3/50][4/4] AGC-003 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-003 综合: main_fast=9 | video=0 | 平均=4.5 | 短板=video.query_rewrite_quality=0
+  [4/50][1/4] AGC-004 <main_fast > ...[ArkChat][timing] ttfb=21364ms body=0ms total=21364ms prompt=966 completion=870 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [4/50][2/4] AGC-004 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [4/50][3/4] AGC-004 <video     > ...[ArkChat][timing] ttfb=17153ms body=0ms total=17153ms prompt=1165 completion=783 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [4/50][4/4] AGC-004 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-004 综合: main_fast=9 | video=0 | 平均=4.5 | 短板=video.query_rewrite_quality=0
+  [5/50][1/5] AGC-005 <main_fast > ...    [WARN] Judge<main_fast> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+[ArkChat][timing] ttfb=17469ms body=0ms total=17469ms prompt=983 completion=715 model=ep-20260430103756-7wgz4
+ pass overall=8
+  [5/50][2/5] AGC-005 <compound  > ...    [WARN] Judge<compound> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<compound> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<compound> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [5/50][3/5] AGC-005 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [5/50][4/5] AGC-005 <video     > ...[ArkChat][timing] ttfb=17943ms body=1ms total=17944ms prompt=1179 completion=690 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [5/50][5/5] AGC-005 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-005 综合: main_fast=8 | video=0 | 平均=4 | 短板=video.query_rewrite_quality=0
+  [6/50][1/4] AGC-006 <main_fast > ...[ArkChat][timing] ttfb=17717ms body=0ms total=17717ms prompt=983 completion=748 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [6/50][2/4] AGC-006 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [6/50][3/4] AGC-006 <video     > ...[ArkChat][timing] ttfb=18066ms body=0ms total=18066ms prompt=1178 completion=730 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [6/50][4/4] AGC-006 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-006 综合: main_fast=9 | video=0 | 平均=4.5 | 短板=video.query_rewrite_quality=0
+  [7/50][1/4] AGC-007 <main_fast > ...    [WARN] Judge<main_fast> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+[ArkChat][timing] ttfb=20492ms body=1ms total=20493ms prompt=976 completion=931 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [7/50][2/4] AGC-007 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+[ArkChat][timing] ttfb=21948ms body=0ms total=21948ms prompt=1326 completion=1071 model=ep-20260430103756-7wgz4
+ fail overall=5
+  [7/50][3/4] AGC-007 <video     > ...[ArkChat][timing] ttfb=14807ms body=1ms total=14808ms prompt=1174 completion=706 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [7/50][4/4] AGC-007 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+[ArkChat][timing] ttfb=24762ms body=1ms total=24763ms prompt=853 completion=1177 model=ep-20260430103756-7wgz4
+ fail overall=3
+    → AGC-007 综合: main_fast=9 | strategy=5 | video=0 | smalltalk=3 | 平均=4.25 | 短板=strategy.avoid_pitfalls=0
+  [8/50][1/4] AGC-008 <main_fast > ...[ArkChat][timing] ttfb=17271ms body=0ms total=17271ms prompt=982 completion=818 model=ep-20260430103756-7wgz4
+ pass overall=9.8
+  [8/50][2/4] AGC-008 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+[ArkChat][timing] ttfb=21828ms body=0ms total=21828ms prompt=1284 completion=1133 model=ep-20260430103756-7wgz4
+ fail overall=6
+  [8/50][3/4] AGC-008 <video     > ...[ArkChat][timing] ttfb=16505ms body=0ms total=16505ms prompt=1177 completion=717 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [8/50][4/4] AGC-008 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-008 综合: main_fast=9.8 | strategy=6 | video=0 | 平均=5.27 | 短板=strategy.avoid_pitfalls=0
+  [9/50][1/4] AGC-009 <main_fast > ...[ArkChat][timing] ttfb=17434ms body=0ms total=17434ms prompt=990 completion=764 model=ep-20260430103756-7wgz4
+ pass overall=10
+  [9/50][2/4] AGC-009 <strategy  > ...[ArkChat][timing] ttfb=11034ms body=0ms total=11034ms prompt=1208 completion=586 model=ep-20260430103756-7wgz4
+ fail overall=0
+  [9/50][3/4] AGC-009 <video     > ...[ArkChat][timing] ttfb=22284ms body=1ms total=22285ms prompt=1176 completion=1052 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [9/50][4/4] AGC-009 <smalltalk > ...[ArkChat][timing] ttfb=19577ms body=0ms total=19577ms prompt=943 completion=758 model=ep-20260430103756-7wgz4
+ pass overall=7 audit=1 → "main_summary 超长 91 字（>80）"
+    → AGC-009 综合: main_fast=10 | strategy=0 | video=0 | smalltalk=7 | 平均=4.25 | 短板=strategy.tactical_correctness=0
+  [10/50][1/4] AGC-010 <main_fast > ...[ArkChat][timing] ttfb=13097ms body=1ms total=13098ms prompt=976 completion=557 model=ep-20260430103756-7wgz4
+ pass overall=10
+  [10/50][2/4] AGC-010 <strategy  > ...[ArkChat][timing] ttfb=18469ms body=1ms total=18470ms prompt=1196 completion=797 model=ep-20260430103756-7wgz4
+ fail overall=0
+  [10/50][3/4] AGC-010 <video     > ...    [WARN] Judge<video> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+[ArkChat][timing] ttfb=17433ms body=0ms total=17433ms prompt=1177 completion=728 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [10/50][4/4] AGC-010 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+[ArkChat][timing] ttfb=22886ms body=1ms total=22887ms prompt=893 completion=1132 model=ep-20260430103756-7wgz4
+ pass overall=10
+    → AGC-010 综合: main_fast=10 | strategy=0 | video=0 | smalltalk=10 | 平均=5 | 短板=strategy.tactical_correctness=0
+  [11/50][1/4] AGC-011 <main_fast > ...    [WARN] Judge<main_fast> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+[ArkChat][timing] ttfb=21974ms body=1ms total=21975ms prompt=974 completion=941 model=ep-20260430103756-7wgz4
+ fail overall=6
+  [11/50][2/4] AGC-011 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [11/50][3/4] AGC-011 <video     > ...[ArkChat][timing] ttfb=18806ms body=0ms total=18806ms prompt=1174 completion=822 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [11/50][4/4] AGC-011 <smalltalk > ...[ArkChat][timing] ttfb=22132ms body=0ms total=22132ms prompt=853 completion=982 model=ep-20260430103756-7wgz4
+ fail overall=2
+    → AGC-011 综合: main_fast=6 | video=0 | smalltalk=2 | 平均=2.67 | 短板=video.query_rewrite_quality=0
+  [12/50][1/4] AGC-012 <main_fast > ...    [WARN] Judge<main_fast> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<main_fast> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+[ArkChat][timing] ttfb=18576ms body=0ms total=18576ms prompt=992 completion=887 model=ep-20260430103756-7wgz4
+ fail overall=5
+  [12/50][2/4] AGC-012 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [12/50][3/4] AGC-012 <video     > ...    [WARN] Judge<video> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+[ArkChat][timing] ttfb=14073ms body=1ms total=14074ms prompt=1180 completion=663 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [12/50][4/4] AGC-012 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-012 综合: main_fast=5 | video=0 | 平均=2.5 | 短板=video.query_rewrite_quality=0
+  [13/50][1/5] AGC-013 <main_fast > ...[ArkChat][timing] ttfb=19453ms body=1ms total=19454ms prompt=985 completion=761 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [13/50][2/5] AGC-013 <compound  > ...[ArkChat][timing] ttfb=19181ms body=0ms total=19181ms prompt=1305 completion=959 model=ep-20260430103756-7wgz4
+ pass overall=10
+  [13/50][3/5] AGC-013 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [13/50][4/5] AGC-013 <video     > ...[ArkChat][timing] ttfb=23216ms body=1ms total=23217ms prompt=1176 completion=1102 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [13/50][5/5] AGC-013 <smalltalk > ...[ArkChat][timing] ttfb=24819ms body=0ms total=24819ms prompt=865 completion=1256 model=ep-20260430103756-7wgz4
+ fail overall=3
+    → AGC-013 综合: main_fast=9 | compound=10 | video=0 | smalltalk=3 | 平均=5.5 | 短板=video.query_rewrite_quality=0
+  [14/50][1/5] AGC-014 <main_fast > ...[ArkChat][timing] ttfb=19015ms body=0ms total=19015ms prompt=992 completion=745 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [14/50][2/5] AGC-014 <compound  > ...[ArkChat][timing] ttfb=23170ms body=1ms total=23171ms prompt=1085 completion=1183 model=ep-20260430103756-7wgz4
+ fail overall=2 audit=1 → "task_plan 长度=1 与 expected=2 不符（口径=main）"
+  [14/50][3/5] AGC-014 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [14/50][4/5] AGC-014 <video     > ...[ArkChat][timing] ttfb=17797ms body=2ms total=17799ms prompt=1183 completion=797 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [14/50][5/5] AGC-014 <smalltalk > ...[ArkChat][timing] ttfb=21544ms body=1ms total=21545ms prompt=876 completion=986 model=ep-20260430103756-7wgz4
+ fail overall=5
+    → AGC-014 综合: main_fast=9 | compound=2 | video=0 | smalltalk=5 | 平均=4 | 短板=compound.decomposition_correctness=0
+  [15/50][1/5] AGC-015 <main_fast > ...[ArkChat][timing] ttfb=20107ms body=1ms total=20108ms prompt=999 completion=860 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [15/50][2/5] AGC-015 <compound  > ...[ArkChat][timing] ttfb=15691ms body=1ms total=15692ms prompt=1299 completion=803 model=ep-20260430103756-7wgz4
+ pass overall=10
+  [15/50][3/5] AGC-015 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [15/50][4/5] AGC-015 <video     > ...[ArkChat][timing] ttfb=18694ms body=1ms total=18695ms prompt=1194 completion=760 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [15/50][5/5] AGC-015 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-015 综合: main_fast=9 | compound=10 | video=0 | 平均=6.33 | 短板=video.query_rewrite_quality=0
+  [16/50][1/4] AGC-016 <main_fast > ...[ArkChat][timing] ttfb=13256ms body=0ms total=13256ms prompt=969 completion=527 model=ep-20260430103756-7wgz4
+ pass overall=10
+  [16/50][2/4] AGC-016 <strategy  > ...[ArkChat][timing] ttfb=19009ms body=0ms total=19009ms prompt=1184 completion=956 model=ep-20260430103756-7wgz4
+ fail overall=0
+  [16/50][3/4] AGC-016 <video     > ...[ArkChat][timing] ttfb=16466ms body=2ms total=16468ms prompt=1175 completion=763 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [16/50][4/4] AGC-016 <smalltalk > ...[ArkChat][timing] ttfb=20055ms body=1ms total=20056ms prompt=876 completion=819 model=ep-20260430103756-7wgz4
+ pass overall=9
+    → AGC-016 综合: main_fast=10 | strategy=0 | video=0 | smalltalk=9 | 平均=4.75 | 短板=strategy.tactical_correctness=0
+  [17/50][1/4] AGC-017 <main_fast > ...[ArkChat][timing] ttfb=14617ms body=0ms total=14617ms prompt=957 completion=602 model=ep-20260430103756-7wgz4
+ pass overall=10
+  [17/50][2/4] AGC-017 <strategy  > ...[ArkChat][timing] ttfb=16873ms body=0ms total=16873ms prompt=1183 completion=807 model=ep-20260430103756-7wgz4
+ fail overall=0
+  [17/50][3/4] AGC-017 <video     > ...[ArkChat][timing] ttfb=19480ms body=1ms total=19481ms prompt=1174 completion=809 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [17/50][4/4] AGC-017 <smalltalk > ...[ArkChat][timing] ttfb=16104ms body=0ms total=16104ms prompt=864 completion=751 model=ep-20260430103756-7wgz4
+ pass overall=9
+    → AGC-017 综合: main_fast=10 | strategy=0 | video=0 | smalltalk=9 | 平均=4.75 | 短板=strategy.tactical_correctness=0
+  [18/50][1/4] AGC-018 <main_fast > ...[ArkChat][timing] ttfb=9184ms body=0ms total=9184ms prompt=964 completion=430 model=ep-20260430103756-7wgz4
+ pass overall=10
+  [18/50][2/4] AGC-018 <strategy  > ...[ArkChat][timing] ttfb=16027ms body=1ms total=16028ms prompt=1186 completion=795 model=ep-20260430103756-7wgz4
+ fail overall=0
+  [18/50][3/4] AGC-018 <video     > ...[ArkChat][timing] ttfb=24676ms body=1ms total=24677ms prompt=1172 completion=1144 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [18/50][4/4] AGC-018 <smalltalk > ...[ArkChat][timing] ttfb=17254ms body=2ms total=17256ms prompt=876 completion=791 model=ep-20260430103756-7wgz4
+ pass overall=8
+    → AGC-018 综合: main_fast=10 | strategy=0 | video=0 | smalltalk=8 | 平均=4.5 | 短板=strategy.tactical_correctness=0
+  [19/50][1/4] AGC-019 <main_fast > ...[ArkChat][timing] ttfb=18262ms body=0ms total=18262ms prompt=975 completion=788 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [19/50][2/4] AGC-019 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [19/50][3/4] AGC-019 <video     > ...[ArkChat][timing] ttfb=17991ms body=0ms total=17991ms prompt=1167 completion=796 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [19/50][4/4] AGC-019 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-019 综合: main_fast=9 | video=0 | 平均=4.5 | 短板=video.query_rewrite_quality=0
+  [20/50][1/4] AGC-020 <main_fast > ...[ArkChat][timing] ttfb=18951ms body=1ms total=18952ms prompt=975 completion=872 model=ep-20260430103756-7wgz4
+ pass overall=8
+  [20/50][2/4] AGC-020 <strategy  > ...    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<strategy> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+[ArkChat][timing] ttfb=23611ms body=0ms total=23611ms prompt=1321 completion=1198 model=ep-20260430103756-7wgz4
+ fail overall=6
+  [20/50][3/4] AGC-020 <video     > ...    [WARN] Judge<video> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<video> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<video> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+[ArkChat][timing] ttfb=16622ms body=1ms total=16623ms prompt=1168 completion=702 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [20/50][4/4] AGC-020 <smalltalk > ...    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，5s 后第 2/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，10s 后第 3/4 次尝试...
+    [WARN] Judge<smalltalk> 瞬时失败([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.)，20s 后第 4/4 次尝试...
+ FAIL ([safeFetchRaw] 请求超时（25000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-020 综合: main_fast=8 | strategy=6 | video=0 | 平均=4.67 | 短板=strategy.quantification=0
+  [21/50][1/4] AGC-021 <main_fast > ...[ArkChat][timing] ttfb=16048ms body=0ms total=16048ms prompt=975 completion=762 model=ep-20260430103756-7wgz4
+ pass overall=9
+  [21/50][2/4] AGC-021 <strategy  > ...[ArkChat][timing] ttfb=22278ms body=1ms total=22279ms prompt=1308 completion=1104 model=ep-20260430103756-7wgz4
+ fail overall=4
+  [21/50][3/4] AGC-021 <video     > ...[ArkChat][timing] ttfb=14284ms body=0ms total=14284ms prompt=1168 completion=659 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"

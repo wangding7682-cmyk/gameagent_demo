@@ -1,0 +1,226 @@
+{
+  "total_cases": 4,
+  "judged_rows": 12,
+  "grand_avg_overall": 7.58,
+  "parse_error_count": 0,
+  "by_track": {
+    "main_fast": {
+      "total": 4,
+      "pass": 3,
+      "fail": 1,
+      "pass_rate": 75,
+      "avg_overall_score": 8.25,
+      "dimension_averages": {
+        "field_compliance": 7.25,
+        "intent_grounding": 9.25,
+        "routing_accuracy": 8,
+        "naturalness": 9.25,
+        "latency_fitness": 8
+      },
+      "low_score_cases": []
+    },
+    "strategy": {
+      "total": 3,
+      "pass": 1,
+      "fail": 2,
+      "pass_rate": 33.3,
+      "avg_overall_score": 6,
+      "dimension_averages": {
+        "tactical_correctness": 5,
+        "quantification": 6.33,
+        "avoid_pitfalls": 9,
+        "conclusion_first": 8.33,
+        "voice_friendliness": 10
+      },
+      "low_score_cases": [
+        {
+          "case_id": "AGC-030",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "走A训练战术本身正确，但完全未覆盖指定参考要点，未结合用户‘手跟不上’痛点"
+        }
+      ]
+    },
+    "conversation": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "pass_rate": 100,
+      "avg_overall_score": 9.25,
+      "dimension_averages": {
+        "topic_continuity": 9.5,
+        "drift_control": 9.5,
+        "topic_recovery": 9.75,
+        "context_grounding": 9.5,
+        "soulfulness": 8.75
+      },
+      "low_score_cases": []
+    },
+    "smalltalk": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1,
+      "pass_rate": 0,
+      "avg_overall_score": 3,
+      "dimension_averages": {
+        "emotional_acknowledgement": 3,
+        "playful_tone": 2,
+        "light_advice": 0,
+        "conciseness": 9,
+        "routing_correctness": 2
+      },
+      "low_score_cases": [
+        {
+          "case_id": "AGC-036",
+          "overall_score": 3,
+          "verdict": "fail",
+          "reason": "实际路由意图不符合期望，未有效承接用户练亚索连败的挫败情绪，仅空泛提及将提供建议，未给出具体可执行的轻量建议"
+        }
+      ]
+    }
+  },
+  "track_weakness": {
+    "main_fast": {
+      "dim": "field_compliance",
+      "avg": 7.25
+    },
+    "strategy": {
+      "dim": "tactical_correctness",
+      "avg": 5
+    },
+    "conversation": {
+      "dim": "soulfulness",
+      "avg": 8.75
+    },
+    "smalltalk": {
+      "dim": "light_advice",
+      "avg": 0
+    }
+  },
+  "by_case": {
+    "AGC-019": {
+      "case_id": "AGC-019",
+      "question": "那他中期怎么carry？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "conversation": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 8.33
+    },
+    "AGC-024": {
+      "case_id": "AGC-024",
+      "question": "刚才说的那种逆风局，怎么翻盘？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 7,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "conversation": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 8.33
+    },
+    "AGC-030": {
+      "case_id": "AGC-030",
+      "question": "回到刚才那个，走A到底怎么练？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "conversation": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7.67
+    },
+    "AGC-036": {
+      "case_id": "AGC-036",
+      "question": "那我这个瓶颈到底该怎么拆？别只哄我。",
+      "expected_intent": "smalltalk",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "smalltalk": {
+          "overall_score": 3,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "conversation": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 6
+    }
+  },
+  "audit_summary": [],
+  "routing_accuracy": {
+    "total_routed": 4,
+    "matched": 3,
+    "mismatched": 1,
+    "rate": 75,
+    "mismatches": [
+      {
+        "case_id": "AGC-036",
+        "expected": "smalltalk",
+        "actual": "strategy",
+        "question": "那我这个瓶颈到底该怎么拆？别只哄我。"
+      }
+    ]
+  },
+  "compound_decomposition_accuracy": null
+}

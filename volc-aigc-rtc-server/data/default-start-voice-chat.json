@@ -3,7 +3,11 @@
     "UserId": "ChatBot01",
     "WelcomeMessage": "你好，我是小G",
     "EnableConversationStateCallback": true,
-    "AnsMode": 2
+    "VoicePrint": {
+      "Mode": 1,
+      "EnableSV": true,
+      "VoiceDuration": 7
+    }
   },
   "Config": {
     "ASRConfig": {
@@ -12,7 +16,11 @@
         "Mode": "bigmodel",
         "AppId": "4774020236",
         "Cluster": "volcengine_streaming_common",
-        "VolcanoASRParameters": "{\"request\":{\"vad_segment_duration\":1000,\"end_window_size\":500,\"enable_ai_vad\":true}}"
+        "VolcanoASRParameters": "{\"request\":{\"vad_segment_duration\":1000,\"end_window_size\":500}}"
+      },
+      "VADConfig": {
+        "AIVAD": true,
+        "SilenceTime": 1000
       }
     },
     "TTSConfig": {
@@ -51,6 +59,7 @@
           "Height": 720
         }
       },
+      "Prefill": true,
       "ThinkingType": "disabled"
     },
     "SubtitleConfig": {

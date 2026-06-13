@@ -1,0 +1,191 @@
+﻿[Auto-Eval 双轨版] Run ID: 20260611_185112
+[Auto-Eval] 输出目录: C:\Users\Admin\Documents\trae_projects\游戏AI助手 web demo - 测试\auto_eval_lite\runs\20260611_185112
+[Auto-Eval] 模式: LLM | Judge 模型: ep-20260430103756-7wgz4
+[Auto-Eval] tracks_filter: main_fast,compound,strategy,video,smalltalk
+[Auto-Eval] profile: full（全量评测集 / 重大版本）
+[Auto-Eval] Agent URL: http://127.0.0.1:8788/api/eval/generate
+[Auto-Eval] 样本：全量=50 → profile=full 命中=50 条
+
+[Auto-Eval] === 阶段 1：调用 Agent 生成预测 ===
+  [1/50] AGC-001 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [2/50] AGC-002 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [3/50] AGC-003 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [4/50] AGC-004 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [5/50] AGC-005 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [6/50] AGC-006 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [7/50] AGC-007 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [8/50] AGC-008 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [9/50] AGC-009 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=99
+  [10/50] AGC-010 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=63
+  [11/50] AGC-011 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [12/50] AGC-012 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [13/50] AGC-013 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [14/50] AGC-014 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [15/50] AGC-015 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [16/50] AGC-016 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=49
+  [17/50] AGC-017 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=63
+  [18/50] AGC-018 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=65
+  [19/50] AGC-019 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [20/50] AGC-020 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [21/50] AGC-021 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [22/50] AGC-022 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [23/50] AGC-023 ...  [WARN] Agent 瞬时失败(fetch failed)，5s 后第 2/4 次尝试...
+  [WARN] Agent 瞬时失败(fetch failed)，10s 后第 3/4 次尝试...
+ OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [24/50] AGC-024 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [25/50] AGC-025 ... OK | intent=strategy mode=single | 慢路径: tactic=√(5) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [26/50] AGC-026 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [27/50] AGC-027 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [28/50] AGC-028 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [29/50] AGC-029 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [30/50] AGC-030 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [31/50] AGC-031 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [32/50] AGC-032 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [33/50] AGC-033 ... OK | intent=video mode=single | 慢路径: tactic=- video=√(unk) task_plan=1(single)/forced=1(single) ms_len=18
+  [34/50] AGC-034 ... OK | intent=video mode=single | 慢路径: tactic=- video=√(unk) task_plan=1(single)/forced=1(single) ms_len=18
+  [35/50] AGC-035 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=49
+  [36/50] AGC-036 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [37/50] AGC-037 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=54
+  [38/50] AGC-038 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=67
+  [39/50] AGC-039 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=56
+  [40/50] AGC-040 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=72
+  [41/50] AGC-041 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=74
+  [42/50] AGC-042 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=2(compound) ms_len=18
+  [43/50] AGC-043 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [44/50] AGC-044 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [45/50] AGC-045 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [46/50] AGC-046 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [47/50] AGC-047 ... OK | intent=strategy mode=single | 慢路径: tactic=√(4) video=- task_plan=1(single)/forced=1(single) ms_len=18
+  [48/50] AGC-048 ... OK | intent=strategy mode=compound | 慢路径: tactic=√(4) video=- task_plan=2(compound)/forced=2(compound) ms_len=18
+  [49/50] AGC-049 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=48
+  [50/50] AGC-050 ... OK | intent=smalltalk mode=single | 慢路径: tactic=- video=- task_plan=0(single)/forced=1(single) ms_len=59
+
+[Auto-Eval] === 阶段 2：双轨打分（LLM模式） ===
+  [1/50][1/4] AGC-001 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [1/50][2/4] AGC-001 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [1/50][3/4] AGC-001 <video     > ...[ArkChat][timing] ttfb=14573ms body=1ms total=14574ms prompt=1166 completion=672 model=ep-20260430103756-7wgz4
+ fail overall=0 audit=1 → "video_data.linkUrl 为空"
+  [1/50][4/4] AGC-001 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-001 综合: video=0 | 平均=0 | 短板=video.query_rewrite_quality=0
+  [2/50][1/4] AGC-002 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [2/50][2/4] AGC-002 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [2/50][3/4] AGC-002 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [2/50][4/4] AGC-002 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [3/50][1/4] AGC-003 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [3/50][2/4] AGC-003 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [3/50][3/4] AGC-003 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [3/50][4/4] AGC-003 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [4/50][1/4] AGC-004 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [4/50][2/4] AGC-004 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [4/50][3/4] AGC-004 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [4/50][4/4] AGC-004 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [5/50][1/5] AGC-005 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [5/50][2/5] AGC-005 <compound  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [5/50][3/5] AGC-005 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [5/50][4/5] AGC-005 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [5/50][5/5] AGC-005 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [6/50][1/4] AGC-006 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [6/50][2/4] AGC-006 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [6/50][3/4] AGC-006 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [6/50][4/4] AGC-006 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [7/50][1/4] AGC-007 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [7/50][2/4] AGC-007 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [7/50][3/4] AGC-007 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [7/50][4/4] AGC-007 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [8/50][1/4] AGC-008 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [8/50][2/4] AGC-008 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [8/50][3/4] AGC-008 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [8/50][4/4] AGC-008 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [9/50][1/4] AGC-009 <main_fast > ...[ArkChat][timing] ttfb=13049ms body=1ms total=13050ms prompt=993 completion=471 model=ep-20260430103756-7wgz4
+ pass overall=10
+  [9/50][2/4] AGC-009 <strategy  > ...[ArkChat][timing] ttfb=14384ms body=1ms total=14385ms prompt=1208 completion=659 model=ep-20260430103756-7wgz4
+ fail overall=0
+  [9/50][3/4] AGC-009 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [9/50][4/4] AGC-009 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+    → AGC-009 综合: main_fast=10 | strategy=0 | 平均=5 | 短板=strategy.tactical_correctness=0
+  [10/50][1/4] AGC-010 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [10/50][2/4] AGC-010 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [10/50][3/4] AGC-010 <video     > ... FAIL (fetch failed)
+  [10/50][4/4] AGC-010 <smalltalk > ... FAIL (fetch failed)
+  [11/50][1/4] AGC-011 <main_fast > ... FAIL (fetch failed)
+  [11/50][2/4] AGC-011 <strategy  > ... FAIL (fetch failed)
+  [11/50][3/4] AGC-011 <video     > ... FAIL (fetch failed)
+  [11/50][4/4] AGC-011 <smalltalk > ... FAIL (fetch failed)
+  [12/50][1/4] AGC-012 <main_fast > ... FAIL (fetch failed)
+  [12/50][2/4] AGC-012 <strategy  > ... FAIL (fetch failed)
+  [12/50][3/4] AGC-012 <video     > ... FAIL (fetch failed)
+  [12/50][4/4] AGC-012 <smalltalk > ... FAIL (fetch failed)
+  [13/50][1/5] AGC-013 <main_fast > ... FAIL (fetch failed)
+  [13/50][2/5] AGC-013 <compound  > ... FAIL (fetch failed)
+  [13/50][3/5] AGC-013 <strategy  > ... FAIL (fetch failed)
+  [13/50][4/5] AGC-013 <video     > ... FAIL (fetch failed)
+  [13/50][5/5] AGC-013 <smalltalk > ... FAIL (fetch failed)
+  [14/50][1/5] AGC-014 <main_fast > ... FAIL (fetch failed)
+  [14/50][2/5] AGC-014 <compound  > ... FAIL (fetch failed)
+  [14/50][3/5] AGC-014 <strategy  > ... FAIL (fetch failed)
+  [14/50][4/5] AGC-014 <video     > ... FAIL (fetch failed)
+  [14/50][5/5] AGC-014 <smalltalk > ... FAIL (fetch failed)
+  [15/50][1/5] AGC-015 <main_fast > ... FAIL (fetch failed)
+  [15/50][2/5] AGC-015 <compound  > ... FAIL (fetch failed)
+  [15/50][3/5] AGC-015 <strategy  > ... FAIL (fetch failed)
+  [15/50][4/5] AGC-015 <video     > ... FAIL (fetch failed)
+  [15/50][5/5] AGC-015 <smalltalk > ... FAIL (fetch failed)
+  [16/50][1/4] AGC-016 <main_fast > ... FAIL (fetch failed)
+  [16/50][2/4] AGC-016 <strategy  > ... FAIL (fetch failed)
+  [16/50][3/4] AGC-016 <video     > ... FAIL (fetch failed)
+  [16/50][4/4] AGC-016 <smalltalk > ... FAIL (fetch failed)
+  [17/50][1/4] AGC-017 <main_fast > ... FAIL (fetch failed)
+  [17/50][2/4] AGC-017 <strategy  > ... FAIL (fetch failed)
+  [17/50][3/4] AGC-017 <video     > ... FAIL (fetch failed)
+  [17/50][4/4] AGC-017 <smalltalk > ... FAIL (fetch failed)
+  [18/50][1/4] AGC-018 <main_fast > ... FAIL (fetch failed)
+  [18/50][2/4] AGC-018 <strategy  > ... FAIL (fetch failed)
+  [18/50][3/4] AGC-018 <video     > ... FAIL (fetch failed)
+  [18/50][4/4] AGC-018 <smalltalk > ... FAIL (fetch failed)
+  [19/50][1/4] AGC-019 <main_fast > ... FAIL (fetch failed)
+  [19/50][2/4] AGC-019 <strategy  > ... FAIL (fetch failed)
+  [19/50][3/4] AGC-019 <video     > ... FAIL (fetch failed)
+  [19/50][4/4] AGC-019 <smalltalk > ... FAIL (fetch failed)
+  [20/50][1/4] AGC-020 <main_fast > ... FAIL (fetch failed)
+  [20/50][2/4] AGC-020 <strategy  > ... FAIL (fetch failed)
+  [20/50][3/4] AGC-020 <video     > ... FAIL (fetch failed)
+  [20/50][4/4] AGC-020 <smalltalk > ... FAIL (fetch failed)
+  [21/50][1/4] AGC-021 <main_fast > ... FAIL (fetch failed)
+  [21/50][2/4] AGC-021 <strategy  > ... FAIL (fetch failed)
+  [21/50][3/4] AGC-021 <video     > ... FAIL (fetch failed)
+  [21/50][4/4] AGC-021 <smalltalk > ... FAIL (fetch failed)
+  [22/50][1/4] AGC-022 <main_fast > ... FAIL (fetch failed)
+  [22/50][2/4] AGC-022 <strategy  > ... FAIL (fetch failed)
+  [22/50][3/4] AGC-022 <video     > ... FAIL (fetch failed)
+  [22/50][4/4] AGC-022 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [23/50][1/4] AGC-023 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [23/50][2/4] AGC-023 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [23/50][3/4] AGC-023 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [23/50][4/4] AGC-023 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [24/50][1/4] AGC-024 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [24/50][2/4] AGC-024 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [24/50][3/4] AGC-024 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [24/50][4/4] AGC-024 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [25/50][1/4] AGC-025 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [25/50][2/4] AGC-025 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [25/50][3/4] AGC-025 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [25/50][4/4] AGC-025 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [26/50][1/4] AGC-026 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [26/50][2/4] AGC-026 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [26/50][3/4] AGC-026 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [26/50][4/4] AGC-026 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [27/50][1/4] AGC-027 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [27/50][2/4] AGC-027 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [27/50][3/4] AGC-027 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [27/50][4/4] AGC-027 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [28/50][1/4] AGC-028 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [28/50][2/4] AGC-028 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [28/50][3/4] AGC-028 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [28/50][4/4] AGC-028 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [29/50][1/4] AGC-029 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [29/50][2/4] AGC-029 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [29/50][3/4] AGC-029 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [29/50][4/4] AGC-029 <smalltalk > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [30/50][1/4] AGC-030 <main_fast > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [30/50][2/4] AGC-030 <strategy  > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)
+  [30/50][3/4] AGC-030 <video     > ... FAIL ([safeFetchRaw] 请求超时（15000ms）: https://ark.cn-beijing.volces.com/api/v3/chat/completions)

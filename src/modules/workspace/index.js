@@ -275,8 +275,32 @@ export class WorkspaceModule {
         return String(runtime.apiBaseUrl || rtcRuntime.apiBaseUrl || 'http://127.0.0.1:8788').replace(/\/$/, '');
     }
 
+    getBackendConnectivityState() {
+        if (typeof window === 'undefined') {
+            return { available: true, pausedUntil: 0 };
+        }
+        return window.__GAME_AI_BACKEND_STATUS__ || { available: true, pausedUntil: 0 };
+    }
+
+    isBackendRequestPaused() {
+        const state = this.getBackendConnectivityState();
+        return state.available === false && Number(state.pausedUntil || 0) > Date.now();
+    }
+
+    getBackendRetryText() {
+        const state = this.getBackendConnectivityState();
+        const remainingMs = Math.max(0, Number(state.pausedUntil || 0) - Date.now());
+        return `${Math.max(1, Math.ceil(remainingMs / 1000))} 秒后重试`;
+    }
+
     async loadRtcFeatureState(options = {}) {
         const silent = options.silent === true;
+        if (this.isBackendRequestPaused()) {
+            if (!silent) {
+                this.updateRtcFeatureStatus(`后端暂不可用，音频输入算法设置已暂停同步，${this.getBackendRetryText()}`, true);
+            }
+            return;
+        }
         if (!silent) {
             this.updateRtcFeatureStatus('正在读取音频输入算法设置...');
         }
@@ -396,7 +420,7 @@ export class WorkspaceModule {
         }
 
         this.rtcFeaturePollTimer = window.setInterval(() => {
-            if (this.isRtcFeatureSyncing) {
+            if (this.isRtcFeatureSyncing || this.isBackendRequestPaused()) {
                 return;
             }
             this.loadRtcFeatureState({ silent: true }).catch(() => {});
@@ -1311,6 +1335,16 @@ export class WorkspaceModule {
             });
         });
 
+        this.eventBus.on('BACKEND_CONNECTIVITY_CHANGED', (payload = {}) => {
+            if (payload.available) {
+                if (!this.isRtcFeatureSyncing) {
+                    this.loadRtcFeatureState({ silent: true }).catch(() => {});
+                }
+                return;
+            }
+            this.updateRtcFeatureStatus(`后端连接已断开，音频输入算法设置轮询已暂停，${this.getBackendRetryText()}`, true);
+        });
+
         // 屏幕共享状态监听
         this.eventBus.on('rtc_screen_share_pending', (payload) => {
             this.isScreenSharing = false;
@@ -1734,12 +1768,12 @@ export class WorkspaceModule {
         if (channel === 'rtc') {
             const source = String(payload.source || '').toLowerCase();
             if (source.includes('asr')) {
-                return 'RTC 语音';
+                return '音频记录 · 语音';
             }
             if (source.includes('text')) {
-                return 'RTC 文本';
+                return '音频记录 · 文本';
             }
-            return 'RTC';
+            return '音频记录';
         }
         if (channel === 'chat') {
             return '文本聊天';
@@ -1767,7 +1801,8 @@ export class WorkspaceModule {
             if (role === 'user') {
                 return source === 'chat_input';
             }
-            return source === 'chat_reply';
+            // 允许 chat_reply、interaction_reply、agent_main 等所有助手回复进入对话日志
+            return ['chat_reply', 'interaction_reply', 'agent_main', 'agent'].includes(source);
         }
 
         return false;
@@ -1849,11 +1884,29 @@ export class WorkspaceModule {
         }
 
         if (Array.isArray(entry.transcript) && entry.transcript.length > 0) {
+            let currentAssistantText = '';
             entry.transcript.forEach((item) => {
-                const line = document.createElement('p');
-                line.textContent = `${item.role === 'user' ? '用户' : '小G'}：${item.text}`;
-                entry.element.appendChild(line);
+                if (item.role === 'user') {
+                    if (currentAssistantText) {
+                        const line = document.createElement('p');
+                        line.textContent = `小G：${currentAssistantText}`;
+                        entry.element.appendChild(line);
+                        currentAssistantText = '';
+                    }
+                    const line = document.createElement('p');
+                    line.textContent = `用户：${item.text}`;
+                    entry.element.appendChild(line);
+                } else {
+                    currentAssistantText = currentAssistantText
+                        ? `${currentAssistantText} ${item.text}`
+                        : item.text;
+                }
             });
+            if (currentAssistantText) {
+                const line = document.createElement('p');
+                line.textContent = `小G：${currentAssistantText}`;
+                entry.element.appendChild(line);
+            }
             return;
         }
 
@@ -1873,7 +1926,10 @@ export class WorkspaceModule {
             video: '精彩视频',
             knowledge: '知识卡片',
             smalltalk: '闲聊'
-        }[intent] || intent;
+        }[intent];
+        if (!intentLabel) {
+            return;
+        }
 
         for (const channel of Object.keys(this.lastConversationByChannel)) {
             const entry = this.lastConversationByChannel[channel];
@@ -1925,6 +1981,8 @@ export class WorkspaceModule {
         const lastEntry = this.lastConversationByChannel[channel];
 
         if (channel === 'rtc') {
+            // RTC channel 所有消息积累到同一个 entry 的 transcript 数组中，
+            // 但不再拼接同 role 消息——每条消息独立成行，保证 user/bot 交替出现。
             let entry = lastEntry;
             if (!entry || entry.channel !== 'rtc' || !entry.element) {
                 entry = this.createConversationEntry({ channel, label });
@@ -1936,18 +1994,11 @@ export class WorkspaceModule {
 
             const transcript = Array.isArray(entry.transcript) ? entry.transcript : [];
             const normalizedText = text.trim();
-            const previous = transcript.length > 0 ? transcript[transcript.length - 1] : null;
-
-            if (previous && previous.role === role) {
-                if (normalizedText && !previous.text.endsWith(normalizedText)) {
-                    previous.text = `${previous.text} ${normalizedText}`.trim();
-                }
-            } else {
-                transcript.push({
-                    role,
-                    text: normalizedText
-                });
-            }
+            // 不再拼接同 role 消息，每条独立追加，保持交替结构
+            transcript.push({
+                role,
+                text: normalizedText
+            });
 
             entry.transcript = transcript;
             entry.userText = '';

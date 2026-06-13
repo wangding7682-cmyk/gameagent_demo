@@ -1,0 +1,304 @@
+{
+  "total_cases": 5,
+  "judged_rows": 14,
+  "grand_avg_overall": 5.75,
+  "parse_error_count": 0,
+  "by_track": {
+    "main_fast": {
+      "total": 5,
+      "pass": 1,
+      "fail": 4,
+      "pass_rate": 20,
+      "avg_overall_score": 5.8,
+      "dimension_averages": {
+        "field_compliance": 4.2,
+        "intent_grounding": 6.6,
+        "routing_accuracy": 8.6,
+        "naturalness": 4.6,
+        "latency_fitness": 5.2
+      },
+      "low_score_cases": [
+        {
+          "case_id": "AGC-055",
+          "overall_score": 4,
+          "verdict": "fail",
+          "reason": "实际路由意图与期望的strategy不符，首句存在机械起手，回复含客服腔，且video意图下main_summary违规填充内容"
+        }
+      ]
+    },
+    "strategy": {
+      "total": 3,
+      "pass": 0,
+      "fail": 3,
+      "pass_rate": 0,
+      "avg_overall_score": 3.67,
+      "dimension_averages": {
+        "tactical_correctness": 2.67,
+        "quantification": 2.67,
+        "avoid_pitfalls": 5.67,
+        "conclusion_first": 5.33,
+        "voice_friendliness": 6.33
+      },
+      "low_score_cases": [
+        {
+          "case_id": "AGC-055",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "tactic_data核心字段（标题、要点、口播）均为空，未覆盖任何参考要点，完全不符合要求"
+        },
+        {
+          "case_id": "AGC-058",
+          "overall_score": 5,
+          "verdict": "fail",
+          "reason": "未响应用户“打野gank集锦”的视频需求，带节奏方案未命中指定阶段打法，核心要点命中率仅25%"
+        }
+      ]
+    },
+    "video": {
+      "total": 4,
+      "pass": 2,
+      "fail": 2,
+      "pass_rate": 50,
+      "avg_overall_score": 5.25,
+      "dimension_averages": {
+        "query_rewrite_quality": 5.25,
+        "platform_adaptation": 5.5,
+        "semantic_relevance": 7,
+        "result_completeness": 8.75,
+        "routing_correctness": 6.5
+      },
+      "low_score_cases": [
+        {
+          "case_id": "AGC-058",
+          "overall_score": 3,
+          "verdict": "fail",
+          "reason": "路由意图误判为strategy而非video；所有平台改写词为空，不符合改写规范；检索结果仅覆盖打野gank集锦需求，未响应“怎么带节奏”的问题"
+        },
+        {
+          "case_id": "AGC-059",
+          "overall_score": 0,
+          "verdict": "fail",
+          "reason": "实际路由意图为strategy，不符合预期的video意图；且所有平台改写词为空，无法有效召回精准的中单对线教学视频"
+        }
+      ]
+    },
+    "compound": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "pass_rate": 100,
+      "avg_overall_score": 10,
+      "dimension_averages": {
+        "decomposition_correctness": 10,
+        "tool_coverage": 10,
+        "subquery_purity": 10,
+        "entity_preservation": 10,
+        "output_completeness": 10
+      },
+      "low_score_cases": []
+    }
+  },
+  "track_weakness": {
+    "main_fast": {
+      "dim": "field_compliance",
+      "avg": 4.2
+    },
+    "strategy": {
+      "dim": "tactical_correctness",
+      "avg": 2.67
+    },
+    "video": {
+      "dim": "query_rewrite_quality",
+      "avg": 5.25
+    },
+    "compound": {
+      "dim": "decomposition_correctness",
+      "avg": 10
+    }
+  },
+  "by_case": {
+    "AGC-055": {
+      "case_id": "AGC-055",
+      "question": "辅助团战站位教学",
+      "expected_intent": "strategy",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 4,
+          "verdict": "fail",
+          "audit_count": 2,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 2
+    },
+    "AGC-056": {
+      "case_id": "AGC-056",
+      "question": "打野入侵路线集锦",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 3,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7.5
+    },
+    "AGC-057": {
+      "case_id": "AGC-057",
+      "question": "上单抗压教学视频",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 3,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7.5
+    },
+    "AGC-058": {
+      "case_id": "AGC-058",
+      "question": "怎么带节奏？再给我个打野gank集锦",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 7,
+          "verdict": "pass",
+          "audit_count": 1,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 5,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 3,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 6.25
+    },
+    "AGC-059": {
+      "case_id": "AGC-059",
+      "question": "中单怎么对线？另外给我个教学视频",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 2,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 0,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 5.5
+    }
+  },
+  "audit_summary": [
+    {
+      "flag": "main_fast_field_length_error: emotional_reply 字数=N 越界(8-16)",
+      "count": 2
+    },
+    {
+      "flag": "main_fast_field_length_error: video 时 branch_wait_reply 字数=N 越界(16-36)",
+      "count": 2
+    },
+    {
+      "flag": "main_fast_mechanical_opener: 首句机械起手=\"好嘞，我去找\"",
+      "count": 2
+    },
+    {
+      "flag": "main_fast_excessive_detail_density: 首响总字数=N，信息密度过高，不像快路径",
+      "count": 2
+    },
+    {
+      "flag": "main_fast_mechanical_opener: 首句机械起手=\"好的这就帮你找相关教学哒\"",
+      "count": 1
+    },
+    {
+      "flag": "main_fast_customer_service_tone: 出现客服腔或机械服务表达",
+      "count": 1
+    },
+    {
+      "flag": "main_fast_mechanical_opener: 首句机械起手=\"收到你的需求，这就帮你处\"",
+      "count": 1
+    }
+  ],
+  "routing_accuracy": {
+    "total_routed": 5,
+    "matched": 4,
+    "mismatched": 1,
+    "rate": 80,
+    "mismatches": [
+      {
+        "case_id": "AGC-055",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "辅助团战站位教学"
+      }
+    ]
+  },
+  "compound_decomposition_accuracy": {
+    "total_compound_cases": 2,
+    "compound_judged": 2,
+    "correctly_decomposed": 2,
+    "rate": 100,
+    "taskplanner_capable": 2,
+    "taskplanner_capable_rate": 100,
+    "route_short_circuit_loss": 0,
+    "misdecomposed": []
+  }
+}

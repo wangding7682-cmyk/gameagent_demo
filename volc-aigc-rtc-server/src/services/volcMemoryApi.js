@@ -1,4 +1,5 @@
 import { config, getMemoryConfigSummary } from '../config.js';
+import { safeFetchText } from '../utils/http.js';
 
 function assertMemoryConfig() {
   const missing = [];
@@ -39,30 +40,44 @@ async function requestMemoryApi(path, options = {}) {
   assertMemoryConfig();
   const baseUrl = normalizeBaseUrl(config.memory.host);
   const url = `${baseUrl}${path}`;
-  const response = await fetch(url, {
-    method: options.method || 'GET',
-    headers: {
-      ...buildHeaders(),
-      ...(options.headers || {}),
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
+  
+  let text = '';
+  try {
+    text = await safeFetchText(url, {
+      method: options.method || 'GET',
+      headers: {
+        ...buildHeaders(),
+        ...(options.headers || {}),
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      timeoutMs: 8000,
+    });
+  } catch (error) {
+    // safeFetchText throws Error(`HTTP ${status}: ${text}`)
+    // Let's parse it if possible
+    if (error.message.startsWith('HTTP ')) {
+      const match = error.message.match(/^HTTP (\d+): (.*)$/s);
+      if (match) {
+        const status = match[1];
+        const errText = match[2];
+        let json = null;
+        try { json = JSON.parse(errText); } catch (_) {}
+        const wrappedError = new Error(
+          json?.message || json?.detail || `Mem0 请求失败: HTTP ${status}`
+        );
+        wrappedError.code = `HTTP_${status}`;
+        wrappedError.response = json || errText;
+        throw wrappedError;
+      }
+    }
+    throw error;
+  }
 
-  const text = await response.text();
   let json = null;
   try {
     json = text ? JSON.parse(text) : null;
   } catch (error) {
     json = null;
-  }
-
-  if (!response.ok) {
-    const error = new Error(
-      json?.message || json?.detail || `Mem0 请求失败: HTTP ${response.status}`
-    );
-    error.code = `HTTP_${response.status}`;
-    error.response = json || text;
-    throw error;
   }
 
   return json;

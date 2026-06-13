@@ -1,410 +1,508 @@
-# 游戏 AI 助手 —— 多 Agent 智能体交互工作台
+﻿# 游戏 AI 助手 —— 面向游戏场景的多 Agent 交互工作台
 
-一个基于**火山引擎生态**的游戏 AI 助手，核心形态为"纸片人智能体"，通过实现实时对话、知识检索与视频推荐来解决玩家问询，搜索诉求。系统采用 **FSM 驱动的分层异步并发多 Agent 架构**，支持语音/文本/屏幕共享三种交互模态。
+这是一个面向游戏场景的 AI 助手工程 Demo，也是一套可以用于展示 Agent 架构能力的 showcase。它不是简单的“问一句答一句”聊天机器人，而是尝试把玩家在游戏中的语音、文字、屏幕画面、历史偏好和知识库内容整合起来，让 AI 像一个实时游戏搭子/教练一样，能听懂玩家问题、看见当前局势、查到可靠资料、记住用户习惯，并在合适的时候给出建议。
 
-## 项目预览
+从用户视角看，它可以帮玩家做这些事：
 
-前端工作台集成了 Live2D 桌宠、语音通话、视频工作区、知识卡片和 Agent 编排日志等完整交互能力。
+- **边玩边问**：通过 RTC 语音或文本聊天，询问英雄打法、出装思路、团战决策、资源取舍等问题
+- **看画面给建议**：共享游戏画面后，系统会把屏幕信息转成上下文，辅助判断当前局势，而不是只靠用户描述
+- **查攻略和资料**：从本地知识库、云端知识库和内置游戏知识中检索内容，再整理成更容易理解的回答
+- **找教学视频**：根据用户问题自动生成更适合 B 站、抖音等平台的检索词，返回可打开的视频或搜索结果
+- **记住用户偏好**：沉淀用户常玩的英雄、表达偏好、历史问题和画像信息，让后续对话更连续
+- **低打扰陪伴**：在高压战斗或不适合长篇解释的场景中，优先短句、轻提示或保持沉默，避免打断玩家
+
+从工程视角看，这个项目围绕标准 Agent 能力做了完整拆解：**感知（Perception）→ 自主规划（Planning）→ 执行（Execution）→ 执行反馈（Feedback）→ 反思（Reflection）→ 记忆沉淀（Memory）**。主链路优先保证实时响应，复杂的 RAG 检索、记忆写入、任务拆解、质量评估和下一轮建议放在异步链路中处理，从而兼顾游戏交互的低延迟和 Agent 系统的长期演进能力。
+
+项目复杂度主要体现在三套“底层能力”：
+
+- **知识库机制**：不是简单关键词搜索，而是多源召回、domain 判断、rerank、缓存、弱命中保护和结果降级，尽量让回答有依据、不硬编
+- **记忆库机制**：同时维护用户画像、长期记忆、分层记忆和 overlay，既能展示“AI 记得住”，又能避免 Demo 环境被测试数据污染
+- **自动化评测机制**：通过 Auto-Eval Lite、LLM-as-a-Judge、分轨数据集和 mock 脚本，持续验证主回复、策略、视频、复合任务、静默策略等能力是否退化
+
+## 项目定位
+
+这个项目重点解决四类问题：
+
+- 游戏场景下，如何把**文本、语音、屏幕共享**统一成一个可用的交互入口
+- 标准 Agent 系统里，如何把**感知、自主规划、执行反馈、反思和记忆**落到真实产品链路中
+- 多 Agent 系统里，如何让**主链路低延迟**，同时把知识检索、记忆写入、规划、反思等重逻辑放到异步后台
+- 工程演进过程中，如何让架构变化具备**可观测、可评测、可回归**的能力
+
+## 工程亮点
+
+### 1. 闭环式 Agent 架构
+
+项目已经不再是简单的“问一句答一句”，而是围绕完整闭环组织能力：
+
+- **Perception**：RTC 字幕、语音输入、屏幕抽帧、视觉事件统一进入上下文系统
+- **Memory**：支持长期记忆、分层记忆、用户画像、覆盖层 overlay、多用户隔离
+- **Planning**：支持会话目标追踪、复合任务编排、策略/视频次任务补偿执行
+- **Execution**：主链路负责实时响应，Strategy / Video / RTC 桥接等模块承担执行
+- **Reflection**：Reflector 在后台异步进行质量评分、下一轮预测、主动话术建议与记忆升级建议
+
+这套设计的核心优势是：**实时链路不被重逻辑拖慢，但系统依然能持续学习和自我修正。**
+
+### 2. 延迟优先的异步反思机制
+
+项目把反思、规划、目标追踪等耗时逻辑明确放到异步侧，而不是阻塞主回复。
+
+- 主回复优先返回，确保语音/文本交互的实时体验
+- Reflector 在后台完成质量打分、下一轮桥接问题建议、主动 cue 与记忆升级建议
+- 分层记忆与目标追踪在下一轮生效，形成真正的“回看上一轮，优化下一轮”
+
+这是一种非常适合游戏陪玩 / 游戏教练场景的工程折中：**先响应，再思考；先陪伴，再优化。**
+
+### 3. 多源 RAG + 成本控制
+
+知识检索部分已经从单源查询升级为多源融合流程：
+
+- 本地用户库支持 BM25 + Embedding 混合召回
+- 云端库支持 `user_cloud` / `house_volc` 等来源并行粗排
+- 统一经过 rerank 消除不同来源分数的量纲差异
+- 再基于来源权重、域预测、动态阈值做最终排序
+- 引入三层缓存（结果缓存 / query embedding / chunk embedding）降低时延与成本
+- 当 `user_local` 强命中时，直接跳过云端库，减少不必要的调用费用
+
+这部分是当前工程中非常有代表性的亮点：它不只是“能查到”，而是已经开始认真处理**召回质量、打分统一、成本约束与时延控制**。
+
+### 4. 屏幕观察的“静默感知”设计
+
+项目已打通从前端抽帧到后端视觉理解再到上下文注入的完整链路，但并没有简单地把视觉结果直接变成播报。
+
+当前策略是：
+
+- 前端 `RtcModule` 在共享画面时每 5 秒抽帧一次
+- 后端将截图识别为标准化游戏事件 schema
+- `screenEventService` 对事件做冷却、去抖、摘要和最近流水维护
+- 视觉结果只作为“白板信息”注入 Agent 上下文
+- 是否主动说话，最终由 Reflector 统一决定
+
+这让系统具备“看见画面”的能力，同时避免屏幕检测噪声直接变成打扰用户的主动播报。
+
+### 5. 多用户记忆演示机制
+
+为了适配 Demo 与产品验证场景，项目引入了“基线 + 覆盖层”的记忆保护思路：
+
+- 支持多用户切换、新建用户、长期记忆隔离
+- 支持 overlay 覆盖层写入，避免污染基线人设
+- 支持自动回退与手动 reset，便于演示环境快速恢复
+
+这让系统既能展示“AI 真的记住了用户”，又不会因为连续测试把整套记忆环境弄乱。
+
+### 6. 工程化评测与 Mock 验证体系
+
+项目不只依赖人工主观判断结果，而是已经具备较完整的工程化验证手段：
+
+- `auto_eval_lite`：基于 LLM-as-a-Judge 的轻量评测框架
+- 多组 mock 脚本：覆盖分层记忆、会话目标、屏幕事件、上下文注入、失败重试、端到端闭环等关键模块
+- 可归档运行结果：支持做回归对比和 Prompt 迭代验证
+
+这意味着本项目不只是功能 Demo，也逐步具备“**可以稳定迭代**”的基础设施。
+
+### 7. RTC CustomLLM 与低打扰对话策略
+
+RTC 通话链路已从“云端固定 Bot”升级为可接入本服务编排的 CustomLLM 模式：
+
+- `/api/agent/rtc-llm-stream` 将 RTC 语音输入接入自研 Agent 编排，而不是只依赖静态 Prompt
+- `/api/agent/rtc-push-tts` 负责把编排结果推回 RTC 语音通道
+- `body.context` 与 `ExternalPromptsForLLM` 两条路径并行：前者进入 Agent 编排，后者把摘要和反思结果实时投影给 RTC
+- 交互层引入 silence guard，在高压战斗、低血量、被动发育等场景下优先短句、轻互动或保持克制，避免“AI 过度打扰”
+
+## 当前能力概览
+
+### 用户可见能力
+
+- 文本聊天、语音聊天、屏幕共享三种主交互模式
+- Live2D 桌宠 + 语音气泡 + 交互反馈
+- 多 Agent 编排结果展示：文本回复、知识卡片、视频结果、任务日志
+- 本地视频工作区 + 实时屏幕共享双工作流
+- 用户知识库导入与多用户身份切换
+- 反思日志查看入口，方便观察 Reflector 的质量评分、主动提示和记忆升级建议
+- 前端内嵌 README 查看能力，部署后可通过 `/api/readme` 稳定访问
+
+### 系统能力
+
+- 基于 FSM 的任务状态流转与意图并发控制
+- 主路径 + 次任务补偿的 compound 编排能力
+- TaskPlanner 支持启发式 + LLM 拆解 + fallback 的复合任务规划
+- 分层记忆写入与加权召回
+- 多源 RAG、统一 rerank 与缓存加速
+- RAG 弱命中保护：低相关时避免硬编具体事实，并保留 `weak_hit` 诊断信息
+- 屏幕观察白板注入与视觉事件治理
+- Reflector 异步反思与会话目标追踪
+- RTC CustomLLM / TTS / 字幕 / 远端音频控制全链路桥接
 
 ## 技术栈
 
-| 层级   | 技术选型                                             |
-| ---- | ------------------------------------------------ |
-| 前端   | Vanilla JS (ES6 Modules)、Live2D、PixiJS           |
-| 后端   | Node.js (≥18.0.0)、原生 http 模块                     |
-| AI   | 火山引擎 Ark (LLM)、TTS V3 (语音合成)                     |
-| RTC  | 火山引擎 RTC Web SDK（实时通话、ASR 语音识别）                  |
-| 知识库  | 火山引擎 RAG 知识库 (search\_knowledge / service\_chat) |
-| 记忆库  | 火山引擎 Viking 记忆库 (event\_v1 + profile\_v1)        |
-| 视频搜索 | 多源视频搜索（B站/抖音/Bing），平台专属检索词改写，优先返回桌面端可用链接 |
-| 评测   | LLM-as-a-Judge 自动评测框架                            |
-
-## 核心特性
-
-- **多模态交互**：语音聊天、文本聊天、屏幕共享三种模式一键切换
-- **Live2D 桌宠**：可切换造型的纸片人智能体，支持语音播报气泡、互动点击
-- **多 Agent 编排**：Main\_Agent 意图路由 + Strategy\_Agent 战术卡片 + Video\_Agent 视频搜索
-- **FSM 状态机驱动**：严谨的任务状态流转（CREATED → CONTEXT\_LOADING → ROUTING → MAIN\_REPLIED → BRANCH\_EXEC → DONE）
-- **并发池控制**：strategy / video 各限 2 并发，支持 high/normal/low 优先级插队
-- **长期记忆沉淀**：MemoryWriter 异步提取高价值事实/偏好/禁忌，写入本地文件 + Viking 云端
-- **自动评测**：LLM-as-a-Judge 5 维度评测体系，支持路由准确率验证与 Prompt 迭代
-- **分级输出裁剪**：L0(语音) → L3(调试) 四级内容裁剪，确保不同模态输出合适粒度的内容
-- **完整的降级策略**：RAG 超时降级、视频搜索自动回退到 B 站可用页 / 搜索页、Strategy\_Agent 自动重试（2次）
-
-***
+| 层级 | 技术选型 |
+| --- | --- |
+| 前端 | Vanilla JS (ES Modules)、Live2D、PixiJS |
+| 后端 | Node.js、原生 HTTP 服务 |
+| 大模型 | Seed 2.0、Seed 1.8 |
+| 语音 | 火山引擎 RTC、TTS V3 |
+| 记忆 | Viking、Overlay 本地记忆、分层记忆编码 |
+| 检索 | 本地混合检索 + 云端知识库 + 统一 Rerank |
+| 视觉 | 屏幕抽帧 + 视觉事件标准化 + 白板摘要 |
+| 评测 | Auto Eval Lite + 多组 Mock Eval 脚本 |
 
 ## 架构总览
 
-```
-┌────────────────────────────────────────────────────────────────┐
-│                         用户交互层                               │
-│     语音输入 (RTC ASR)  │  文本聊天  │  桌宠点击  │  示例按钮    │
-└───────────────────────────┬────────────────────────────────────┘
-                            │
-              ┌─────────────▼─────────────┐
-              │  前端事件总线 (EventBus)    │
-              │  main.js — 总调度中心      │
-              └─────────────┬─────────────┘
-                            │
-    ┌───────────────────────┼───────────────────────┐
-    │                       │                       │
-┌───▼───┐  ┌───▼───┐  ┌───▼───┐  ┌───▼───┐  ┌───▼───┐
-│ Agent │  │  RTC  │  │Live2D │  │  Pet  │  │Workspc│
-│Module │  │Module │  │Module │  │Module │  │Module │
-└───┬───┘  └───┬───┘  └───────┘  └───────┘  └───────┘
-    │          │
-    │   ┌──────┴──────┐
-    │   │ RTC 字幕/ASR │
-    │   │ 消息通道      │
-    │   └─────────────┘
-    │
-    ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  后端 API 服务 (Node.js :8788)                    │
-│                                                                  │
-│  ┌─────────────────┐  ┌──────────────────┐  ┌────────────────┐ │
-│  │  Agent 编排层     │  │  RTC 智能体桥接层  │  │  数据/媒体层    │ │
-│  │                  │  │                   │  │                │ │
-│  │ Orchestrator     │  │ LLM Stream        │  │ Knowledge API  │ │
-│  │ TaskFSM          │  │ Push TTS          │  │ Viking Memory  │ │
-│  │ ConcurrencyPool  │  │ Interaction Agent │  │ TTS Service    │ │
-│  │ PriorityDetector │  │ RTC Session State │  │ Video Search   │ │
-│  │ OutputTrimmer    │  │ Persona Profile   │  │ Image Gen      │ │
-│  │ TraceLogger      │  │ Function Calling  │  │ Session Store  │ │
-│  └─────────────────┘  └──────────────────┘  └────────────────┘ │
-│                                                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  Context / Memory / Profile                                │  │
-│  │  AgentContextService → AgentProfileLoader → MemoryWriter   │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
+### 1. 前端工作台层
 
-***
+前端不是简单的页面拼接，而是一个事件驱动的多模块工作台：
 
-## 模块详解
+- `App`：全局模式切换（桌宠 / 文本 / RTC）
+- `AgentModule`：统一负责用户请求进入编排主链路
+- `RtcModule`：负责 RTC、字幕、屏幕共享、抽帧采样
+- `WorkspaceModule`：本地视频与共享工作区
+- `Live2dModule` / `PetModule`：桌宠渲染、语音反馈、互动展示
+- `UserKnowledgeModule`：本地文档知识源管理
+- `UserSwitcherModule`：多用户切换、覆盖层提醒、身份演示
+- `EventBus`：前端模块之间的统一通信总线
 
-### 前端模块 (`src/modules/`)
+### 2. 后端统一业务网关
 
-前端采用**事件总线 (EventBus)** 单例模式解耦各模块，`main.js` 作为总调度中心注册所有跨模块事件。
+后端已经从单纯的 RTC 服务端扩展为统一业务网关，主要包括：
 
-#### AgentModule — Agent 编排前端桥接
+- `/api/agent/*`：Agent 编排、上下文、屏幕输入、SSE 事件流
+- `/api/rtc/*`：RTC token、语音通话、功能开关、会话更新
+- `/api/data/*`：知识、记忆、用户、会话数据接口
+- `/api/media/*`：图片生成、TTS、视频搜索相关接口
+- `/api/eval/*`：自动评测生成、真实编排回归验证接口
+- `/api/readme`：部署环境下的 README 读取接口
 
-- **职责**：作为前端与后端 Agent 编排系统的唯一通信入口
-- **核心能力**：
-  - `handleUserQuery()` 统一接收所有来源（文本聊天、RTC ASR、桌宠点击、示例按钮）的用户查询
-  - 请求去重：基于文本相似度 (bigram Jaccard + 长度比) 和 4s 时间窗口，防止 RTC ASR 并发触发
-  - 请求排队：当 Agent 正在处理时，RTC 信号自动入队（最多 10 条），非 RTC 信号支持排队
-  - 持久 SSE 连接：`/api/agent/orchestrate/events` 建立长连接，自动重连（3s 间隔），支持 `visibilitychange` 页面恢复检测
-  - SSE 事件分发：将后端 SSE 事件（`task_created`、`main_reply`、`card_ready`、`video_ready` 等）映射为 EventBus 事件
-  - 知识卡片生命周期管理：图片生成异步 fetch + 45s 超时降级、loading 态、图文卡片渲染
-  - RTC CustomLLM 模式切换：RTC 通话时抑制本地 TTS，避免与云端推流冲突
+### 3. 核心闭环链路
 
-#### RtcModule — 火山 RTC 实时通信
+系统主链路可以概括为：
 
-- **职责**：封装火山引擎 RTC Web SDK，管理实时音视频通话
-- **核心能力**：
-  - Token 生成：内置前端 HMAC-SHA256 Token 生成器（仅供 Demo，生产需服务端下发）
-  - 进房/退房：管理 RTC 引擎生命周期（createEngine → joinRoom → startVoiceChat → leaveRoom）
-  - 字幕解码：解析火山 RTC 的 `subv` 二进制字幕消息，区分 ASR（用户语音）与 Assistant 字幕
-  - 屏幕共享：从本地 `<video>` 元素 `captureStream()` 捕获画面，通过外部视频轨道发布到 RTC 房间
-  - 远端音频控制：支持按 Agent 编排状态自动静音/恢复远端 AI 助手原声音频
-  - Token 自动续期：监听 `onTokenWillExpire` 事件自动续签
+1. 用户输入通过文本、RTC ASR 或屏幕共享进入前端
+2. `AgentModule` 去重、排队、透传到后端编排入口
+3. `agentContextService` 组装多源上下文
+4. `interactionAgentService` / `mainAgentService` 完成意图识别与主回复生成
+5. TaskPlanner 按需拆解 strategy / video / smalltalk / compound / silence 等任务形态
+6. Strategy / Video / RTC 等分支按优先级与资源限制执行
+7. 主结果通过 SSE 持续回传前端
+8. `memoryWriterService`、`reflectorAgentService`、`sessionGoalTrackerService` 等后台链路异步运行
+9. 下一轮对话读取新的记忆、目标、屏幕白板与反思结果，形成闭环
 
-#### Live2dModule — 纸片人桌宠
+## 核心模块说明
 
-- **职责**：Live2D 模型渲染、动画控制、语音播报气泡
-- 支持多造型切换（长发/短发等）、表情切换
-- 接收 `TRIGGER_TTS` 事件触发语音气泡，播报完成后自动隐藏
-- 响应点击事件 `pet_tap` 触发 Agent 互动
+### 前端模块
 
-#### WorkspaceModule — 视频工作区
+#### `src/modules/agent`
 
-- **职责**：管理游戏视频的上传、播放、进度控制
-- 支持本地视频文件拖拽上传
-- 视频播放器控制（播放/暂停/静音/全屏/进度条）
-- 视频源变化通知 RTC 模块自动同步屏幕共享
+前端与后端编排系统的统一桥接层：
 
-#### PetModule / DataModule
+- 统一接收文本、语音、示例按钮、桌宠点击等所有用户输入
+- 对 RTC ASR 做时间窗口去重与忙碌保护
+- 维护持久 SSE 连接并做页面恢复重连
+- 将后端事件映射为前端事件总线消息
+- 管理知识卡片、视频结果、任务状态、README 弹窗等展示能力
 
-- **PetModule**：管理纸片人 UI 面板（模式切换按钮、造型选项等）
-- **DataModule**：管理本地数据存储（localStorage 会话记录）
+#### `src/modules/rtc`
 
-***
+RTC 与屏幕能力的核心模块：
 
-### 后端服务 (`volc-aigc-rtc-server/src/services/`)
+- 负责 RTC 进房、退房、远端音频控制、字幕解码
+- 支持本地视频共享与实时屏幕共享
+- 共享时按周期抽帧并上报视觉识别接口
+- 与 Agent 编排状态联动，避免本地 TTS 与云端推流冲突
 
-#### agentOrchestratorService — Agent 编排器（核心调度引擎）
+#### `src/modules/workspace`
 
-- **职责**：整轮 Agent 编排的生命周期管理
-- **核心流程**：
-  1. 创建任务（`taskStore.createTask`）→ FSM 状态: `CREATED`
-  2. 加载上下文（`buildAgentContext`）→ `CONTEXT_LOADING`，包含 RAG 检索 + 短期记忆 + 动态上下文
-  3. 意图路由（`localRouteIntent`）→ `ROUTING` → `MAIN_REPLIED`，基于关键词的分层路由
-  4. 分支执行：strategy → `IntentConcurrencyPool.acquire('strategy')` → `runStrategyAgent`
-  5. 分支执行：video → `IntentConcurrencyPool.acquire('video')` → `runVideoAgent`
-  6. 任务完成：写编排日志 + 会话记录 + 异步触发 MemoryWriter
+多模态工作区：
 
-#### taskFsmService — 任务状态机 + 并发池
+- 提供本地视频上传、播放、拖拽与控制能力
+- 承担屏幕共享与本地视频两条使用路径的承接
+- 承担 RTC 功能配置入口与部分演示入口
 
-- **TaskStateStore**：管理任务生命周期，严格校验状态转换合法性
-  - 状态定义：`CREATED → CONTEXT_LOADING → ROUTING → MAIN_REPLIED → BRANCH_QUEUED → BRANCH_EXEC → ASSET_READY → DONE/DEGRADED/FAILED/CANCELLED`
-- **IntentConcurrencyPool**：意图级别的并发控制
-  - strategy 上限 2、video 上限 2
-  - 优先级队列：high > normal > low，同优先级 FIFO
-  - 支持动态排队位置回调
+#### `src/modules/live2d` + `src/modules/pet`
 
-#### agentContextService — 上下文聚合
+桌宠与反馈层：
 
-- 聚合多源上下文：会话短期记忆 + 动态帧上下文（来自 `POST /api/agent/context/frame`）+ RAG 知识检索
-- RAG 超时/异常时返回 `fallback=true`，不阻塞编排主流程
-- 结果缓存在 context.rag 中，Main\_Agent 和子 Agent 共享，**严禁重复检索**
+- 支持多角色切换、动作表情、气泡字幕
+- 支持 TTS 联动、交互点击与角色态展示
+- 让 Agent 的交互结果具备更强的产品形态
 
-#### interactionAgentService — 交互路由 Agent（轻量级）
+#### `src/modules/user-knowledge`
 
-- 基于关键词正则的本地意图路由（非 LLM 调用，延迟极低）
-- 三层优先级：smalltalk 拦截 → strategy → video → 兜底 smalltalk
-- 4 层 smalltalk 拦截规则：观点确认类、自我怀疑类、玩法哲学类、纯闲聊类
-- 即使包含战术关键词（如"出装"），只要核心意图是情绪确认，也会正确路由到 smalltalk
+用户外挂知识库能力：
 
-#### strategyAgentService — 战术 Agent
+- 支持本地知识源管理
+- 支持按 domain 组织知识内容
+- 为“用户自带知识库 + 云端知识库”混合检索提供前端入口
 
-- 对接 RAG 知识库进行二次检索，生成结构化战术卡片
-- 输出：`title`、`details[]`（要点列表）、`image_prompt_text`（可选生图提示）、`voice_chunks[]`（语音播报分句）
-- 支持 Demo Mock 模式（`forceMock=true`）用于前端演示
+#### `src/modules/user-switcher`
 
-#### videoAgentService — 视频 Agent
+多用户演示能力：
 
-- 多源视频搜索：B站、抖音、Bing，按平台分别使用专属检索词
-- 平台专属改写：统一生成 `generic / bilibili / douyin` 三路 query，B站偏教程详解，抖音偏实战高光
-- 链接选择策略：优先返回 B 站视频页等桌面端可直接打开的页面链接，其次再回退到抖音页或搜索页
-- 直链解析保留：若站点能直接解析出 `.mp4` / `.m3u8` 等可播放直链，仍优先返回直链
-- 超时/异常降级：搜索失败时返回候选链接 + `video_failed` 事件
+- 支持多身份切换、新建用户、记忆隔离
+- 支持 overlay 状态提示与回退说明
+- 支持反思日志查看，便于调试主动提示、会话目标和记忆升级链路
+- 方便演示不同用户画像、不同知识与不同记忆环境
 
-#### rtcLlmBridgeService / rtcLlmStreamService / rtcPushTtsService — RTC 智能体桥接
+### 后端服务
 
-- **rtcLlmBridgeService**：管理 RTC 会话的编排状态，提供 SSE 事件缓冲与订阅
-- **rtcLlmStreamService**：处理 CustomLLM 模式下的流式 LLM 响应
-- **rtcPushTtsService**：接收前端 TTS 推送请求，通过 `UpdateVoiceChat(ExternalTextToSpeech)` 下发播报
+#### `agentOrchestratorService`
 
-#### memoryWriterService — 记忆沉淀器（异步）
+整套 Agent 编排主控中心：
 
-- **阶段 A**：编排完成后异步触发，调用 LLM 从单轮对话中提取高价值长期记忆候选
-- 三分类：facts（事实）、preferences（偏好）、avoidances（禁忌）
-- 去重：基于规范化文本 canonicalization，避免与已有记忆重复
-- 本地存储：JSON Patch 增量更新 `data/memory/<userId>.longterm.json`
-- 云端同步：同时写入 Viking 记忆库（`event_v1` 类型，对话消息数组模式）
+- 管理主链路生命周期
+- 驱动状态机流转
+- 串联上下文构建、主 Agent、Strategy Agent、Video Agent、异步记忆与反思
+- 支持主分支先返回、次任务后补偿的复合编排
 
-#### volcVikingMemoryService — Viking 云端记忆
+#### `taskFsmService`
 
-- 提供 `vikingAddEvent` / `vikingSearchProfile` / `vikingSearchEvent` / `vikingSearchMemory` / `vikingGetContext` 完整 API
-- 使用 `Bearer` token 认证，区别于旧版 Mem0 的 `Token` 格式
+任务状态与并发治理底座：
 
-#### 其他关键服务
+- 定义任务状态机
+- 管理 `strategy` / `video` 等资源池并发
+- 支持优先级排队与执行节奏控制
 
-- **outputTrimmerService**：L0(语音) \~ L3(调试) 四级内容裁剪规则
-- **priorityDetectorService**：基于正则匹配"赶紧""马上"等关键词自动设定优先级
-- **agentTraceLoggerService**：JSONL 格式编排日志，支持按 sessionId/intent/status/keyword 筛选
-- **agentProfileLoaderService**：加载本地长期记忆 + 用户画像 + Agent 偏好配置
-- **rtcPersonaProfileService**：管理 RTC 实时画像（Function Calling 回调触发更新）
-- **arkChatService / arkImageService**：火山 Ark LLM 调用 + 知识卡片图像生成
-- **volcKnowledgeApi**：火山知识库检索（支持 search\_knowledge 和 service\_chat 两种模式）
+#### `agentContextService`
 
-***
+统一上下文装配器：
 
-## 目录结构
+- 聚合短期会话、长期记忆、用户画像、分层记忆、会话目标、屏幕白板、多源 RAG
+- 控制上下文注入粒度与信息新鲜度
+- 为 main / strategy / video 等多类 Agent 提供一致上下文
 
-```
-├── index.html                     # 前端主页面
-├── main.js                        # 前端总调度中心（事件注册 + 跨模块逻辑）
+#### `reflectorAgentService`
+
+异步反思代理：
+
+- 负责质量评分、失败诊断、下一轮桥接问题建议
+- 负责主动 cue、目标推断、记忆升级建议
+- 不阻塞主回复，是“后台教练”角色
+
+#### `memoryLayerService` + `memoryWriterService`
+
+记忆链路：
+
+- 支持 `working / episodic / semantic / procedural` 分层语义
+- 支持层级权重、TTL、时间衰减召回
+- 支持 Overlay、本地文件、Viking 协同写入
+
+#### `multiSourceKnowledgeService` + `ragCacheService` + `rerankService`
+
+检索链路：
+
+- 多源并行粗排
+- 动态阈值过滤
+- 统一 rerank 消除量纲差异
+- 结果缓存、embedding 缓存、chunk 缓存
+- 本地强命中时跳过部分云端库调用
+
+#### `screenEventService` + `visionFrameService`
+
+屏幕观察链路：
+
+- 负责截图理解、事件标准化、去抖、冷却和摘要构建
+- 维护最近视觉事件白板
+- 将视觉证据以“静默感知”的形式注入上下文
+
+#### `sessionGoalTrackerService` + `taskPlannerService` + `retryHelperService`
+
+规划与自纠模块：
+
+- 会话目标追踪用于维持长期对话主线
+- 任务规划服务支持启发式、LLM 拆解和正则 fallback，覆盖 strategy / video / compound / silence 等任务形态
+- 失败重试模块用于异常情况的最小自纠闭环
+- `rtcTaskEngagementService` 支持任务暂停、取消、轻互动和可恢复分支，避免旧任务异步回写打断用户新意图
+
+## 工程目录
+
+```text
+.
+├── index.html
+├── main.js
 ├── src/
 │   ├── core/
-│   │   ├── app.js                 # 全局模式管理 (default/pet/rtc/text_chat)
-│   │   └── eventBus.js            # 全局事件总线（单例模式）
+│   │   ├── app.js
+│   │   └── eventBus.js
 │   ├── modules/
-│   │   ├── agent/index.js         # Agent 编排前端桥接
-│   │   ├── rtc/index.js           # RTC 实时通信模块
-│   │   ├── live2d/index.js        # Live2D 桌宠模块
-│   │   ├── pet/index.js           # 纸片人 UI 面板
-│   │   ├── workspace/index.js     # 视频工作区
-│   │   └── data/index.js          # 本地数据存储
-│   └── style.css                  # 全局样式
-├── vendor/                        # 第三方库
-│   ├── live2d/                    # Live2D SDK + 模型
-│   └── volcengine-rtc.min.js      # 火山 RTC Web SDK
-├── volc-aigc-rtc-server/          # 后端 API 服务
-│   ├── src/
-│   │   ├── server.js              # 服务入口 + 全部 API 路由
-│   │   ├── config.js              # 环境变量配置加载
-│   │   ├── services/              # 30+ 业务服务
-│   │   └── utils/                 # 工具函数 (HTTP/签名)
-│   ├── data/
-│   │   ├── personas/              # Agent 人设配置
-│   │   └── default-start-voice-chat.json  # RTC 默认配置
-│   └── vendor/                    # RTC Token 生成器
-├── auto_eval_lite/                # 自动评测系统
-│   ├── run_eval.mjs               # 主评测程序
-│   ├── prompts/judge_prompt.txt   # Judge Prompt 模板
-│   ├── data/cases.jsonl           # 12 条评测用例
-│   └── runs/                      # 评测结果存档
-├── docs/                          # 架构文档
-├── mock-server/                   # 前端 Mock API 服务
-└── 技术复盘报告.md                 # 项目技术复盘（8 个里程碑）
+│   │   ├── agent/
+│   │   ├── rtc/
+│   │   ├── workspace/
+│   │   ├── live2d/
+│   │   ├── pet/
+│   │   ├── data/
+│   │   ├── user-knowledge/
+│   │   ├── user-switcher/
+│   │   └── intent/
+│   └── style.css
+├── vendor/
+├── static-server.js
+├── docs/
+├── mock-server/
+├── auto_eval_lite/
+└── volc-aigc-rtc-server/
+    ├── src/
+    │   ├── server.js
+    │   ├── config.js
+    │   ├── utils/
+    │   └── services/
+    ├── scripts/
+    ├── data/
+    └── vendor/
 ```
-
-***
 
 ## 快速开始
 
 ### 1. 环境准备
 
-- Node.js ≥ 18.0.0
-- 火山引擎账号（需开通 RTC、Ark、TTS、知识库等服务）
+- Node.js 18+
+- 火山引擎账号与相关服务开通权限
+- 可选：RTC、Ark、TTS、知识库、Viking 记忆库配置
 
-### 2. 配置环境变量
+### 2. 配置后端环境变量
 
 ```bash
 cd volc-aigc-rtc-server
 cp .env.example .env
 ```
 
-编辑 `.env`，至少填写：
+至少需要补齐以下配置：
 
 ```env
-VOLCENGINE_ACCESS_KEY=你的火山引擎 AK
-VOLCENGINE_SECRET_KEY=你的火山引擎 SK
-VOLC_RTC_APP_ID=AI音视频互动方案 AppId
-VOLC_RTC_APP_KEY=RTC AppKey
-ARK_API_KEY=Ark API Key
-VOLC_TTS_APP_ID=TTS AppId
-VOLC_TTS_ACCESS_TOKEN=TTS Token
+VOLCENGINE_ACCESS_KEY=你的AK
+VOLCENGINE_SECRET_KEY=你的SK
+VOLC_RTC_APP_ID=你的RTC_APP_ID
+VOLC_RTC_APP_KEY=你的RTC_APP_KEY
+ARK_API_KEY=你的ARK_API_KEY
+VOLC_TTS_APP_ID=你的TTS_APP_ID
+VOLC_TTS_ACCESS_TOKEN=你的TTS_ACCESS_TOKEN
 ```
 
 ### 3. 启动后端
 
+在项目根目录执行：
+
 ```bash
 npm run start
-# 或
-node ./volc-aigc-rtc-server/src/server.js
 ```
 
-后端默认运行在 `http://localhost:8788`。
+默认监听 `http://localhost:8788`。
 
 ### 4. 启动前端
+
+本地静态预览：
 
 ```bash
 node static-server.js
 ```
 
-前端默认运行在 `http://localhost:8081`。
+默认访问地址：`http://localhost:8081`。
 
-或者直接双击打开 `index.html`（部分功能需要 HTTP 服务环境）。
+### 5. 使用方式
 
-### 5. 使用
+- 打开页面后，体验文本聊天或 RTC 语音聊天
+- 上传本地视频，或进入屏幕共享模式
+- 观察编排日志、知识卡片、视频结果与桌宠反馈
+- 切换不同用户，查看记忆与知识隔离效果
+- 点击右上角 README 按钮，查看内嵌项目文档
 
-1. 打开浏览器访问前端页面
-2. 点击纸片人下方的 **"语音聊天"** 按钮开始 RTC 通话
-3. 或点击 **"文本聊天"** 按钮进入文字交互
-4. 上传一段游戏视频，切换到 **"屏幕共享"** 模式实现边玩边问
-5. 点击右上角 **"多Agent编排任务日志"** 查看后台编排详情
+## 评测与验证体系
 
-***
+### Auto Eval Lite
 
-## 评测系统 (auto\_eval\_lite)
+项目内置 `auto_eval_lite`，用于快速回归以下问题：
 
-项目内置了基于 **LLM-as-a-Judge** 的轻量级自动评测框架，用于评估 Main\_Agent 路由准确性与回复质量。
+- `main_fast`：主回复是否快速、克制、没有偷跑慢任务内容
+- `strategy`：策略内容是否结构化、可信、贴近游戏场景
+- `video`：视频链接、平台 query 和结果摘要是否符合预期
+- `compound`：复合任务是否能主结果先返回、次任务继续补偿
+- `silence`：高压或不适合打扰的场景是否能保持低打扰
+- `conversation`：多轮上下文、用户目标和记忆召回是否稳定
 
-### 评测维度（5 维 × 0-10 分）
-
-| 维度                     | 考察重点                        |
-| ---------------------- | --------------------------- |
-| tactical\_quality      | 战术逻辑正确性、操作指令精确度、量化程度        |
-| structural\_compliance | strategy 是否遵循"结论→操作→避坑"三层结构 |
-| tone\_authenticity     | 游戏黑话使用、避免 AI 播音腔            |
-| emotional\_boundary    | 安全底线 + 情绪价值                 |
-| conciseness            | 无冗余寒暄、直接响应需求                |
-
-### 运行评测
+典型运行方式：
 
 ```bash
 cd auto_eval_lite
-node run_eval.mjs --cases data/cases.jsonl
+node run_eval.mjs --cases data/cases.jsonl --profile daily --tracks main_fast,strategy,video,compound,silence
 ```
 
-详细评测设计见 [auto\_eval\_lite/README.md](auto_eval_lite/README.md)。
+长跑评测支持 `--resume <runId>` 断点续跑，并会增量写入 checkpoint，避免一次中断导致整轮结果丢失。评测中还引入了 audit flags，对视频链接缺失、query 风格不符、主回复偷跑慢内容等硬性问题做前置标记，再交给 Judge 打分。
 
-***
+### Mock Eval 脚本
 
-## 降级与容错
+`volc-aigc-rtc-server/scripts/` 下沉淀了多组专项验证脚本，覆盖：
 
-| 场景                 | 策略                                            |
-| ------------------ | --------------------------------------------- |
-| RAG 知识检索超时/失败      | 不中断编排，返回空知识结果 + `fallback=true`               |
-| 视频直链解析失败           | 返回候选链接 + `video_failed` 事件，不阻塞主流程             |
-| Strategy\_Agent 失败 | 自动重试 2 次（间隔 1.5s），耗尽则输出降级卡片                   |
-| 知识卡片图片生成超时         | 45s 超时后仅显示文字卡片，不丢失已加载内容                       |
-| SSE 连接断开           | 前端 3s 自动重连 + `visibilitychange` 页面恢复检测        |
-| 火山服务凭证缺失           | 静默降级到 Mock 模式，确保 Demo 可运行                     |
-| ASR 并发触发           | 前端 4s 去重窗口 + AgentModule 忙碌保护 + 1000ms 滑动窗口合并 |
+- 分层记忆
+- 反思器
+- 会话目标追踪
+- 屏幕事件与上下文注入
+- 失败重试与端到端链路
 
-***
+这部分脚本是当前工程非常重要的基础设施，能够在“模型能力变化、Prompt 变化、架构变化”之后，快速判断系统是否被破坏。
 
-## 待优化方向
+## 部署说明
 
-### 架构演进
+### 本地静态模式
 
-- 反思闭环：执行后自我评估与多轮修正机制
-- LLM 自主规划：从关键词路由向 LLM 自主任务路径规划演进
-- 工具注册中心：统一工具注册、版本管理与异步处理
-- 分布式状态：会话状态的分布式同步、并发锁及超时回收
-- 子任务中断与中间态保持：当前 FSM 的 CANCELLED 为终态，取消后已加载的上下文、RAG 结果、部分策略内容直接丢弃，无法复用。需支持：(1) 静默任务模式——允许 Agent 后台持续执行长任务不阻塞用户新请求；(2) 可恢复中断——用户发起新需求时保留中间态快照，基于已有上下文仅重做受影响环节，避免重复计算
+- README 展示优先尝试 `/api/readme`，如果只启动静态服务器，则回退到 `/README.github.md` 和 `/README.md`
+- 适合只验证前端展示能力
 
-### 记忆系统
+### 后端统一服务模式
 
-- 摘要压缩：长期对话的自动摘要压缩，降低上下文膨胀
-- 画像分层：区分短期会话画像与长期用户画像，精细化上下文注入
-- 云端同步可靠性：Viking 写入的幂等性与重试机制
-- 记忆分类精细化与冲突治理：当前三分类（facts / preferences / avoidances）中 facts 内部混杂客观事实与主观感受，缺乏情感维度独立建模。同时缺失语义级冲突检测（两条矛盾记忆仅做文本去重不做语义仲裁）、记忆可信度衰减（低 confidence 或长期未复现的记忆应自动降权/淘汰以防止 LLM 幻觉污染长期记忆库）、以及记忆完整性校验（对意外篡改或覆盖的防护）
+- README 由 `/api/readme` 提供，当前优先返回 `README.github.md`，不存在时再回退到 `README.md`
+- 适合 Render 等公网部署场景
+- 不依赖根目录静态白名单，部署稳定性更高
 
-### Prompt 质量
+## 适合重点关注的设计取舍
 
-- Main\_Agent 量化要求强化：补充"1分20秒插眼""2分钟看小地图"等量化时间节点
-- 避坑提醒系统性注入：每个 strategy 回复强制包含"人不够别开大龙"类避坑提示
-- Smalltalk 话术增强：强化"俏皮+撒娇+轻量建议"风格
-- 路由规则微调：修复"出装真的好吗"类情绪问题被误路由到 strategy
+### 1. 为什么反思不放在主链路
 
-### 知识库
+因为游戏对话场景更在意“当下有没有回应”，而不是“这一轮有没有想得足够久”。所以项目选择：
 
-- 多模态内容注入：当前仅注入文本内容（API 层已预留 image\_query 等参数但未实际使用），缺乏图片、视频等素材覆盖
-- 检索质量评测体系：当前无检索准确率/召回率的量化评测，需建立独立的知识库检索质量 benchmark
-- 大规模内容下的检索参数调优：在大规模内容场景下验证 dense\_weight、rerank、chunk\_diffusion 等参数的最优配置
+- 主链路先低延迟回复
+- 反思、规划、目标追踪在后台跑
+- 下一轮再利用这些结果提升质量
 
-### RTC 体验
+### 2. 为什么屏幕观察不直接主动播报
 
-- ASR 回声消除：优化 TTS 播报后的短 ASR 误触发过滤
-- 字幕流式显示：增加 streaming 字幕的 UI 展示（当前仅展示 final 句）
-- 打断体验：优化"停止小G说话"按钮的打断响应延迟
+因为视觉识别容易有误差，且游戏场景本身噪声高。项目当前采用“白板注入”而不是“看到就说”：
 
-### 前端工程
+- 保留画面理解能力
+- 避免误触发、刷屏和错播
+- 让 Reflector 统一决定是否值得主动开口
 
-- 构建工具链：引入 Vite/Webpack 进行模块打包与 Tree Shaking
-- 响应式适配：移动端布局支持
-- 单元测试 + E2E 测试覆盖
+### 3. 为什么要做多层记忆和 overlay
 
-### 评测体系
+因为 Demo 场景与真实用户场景不同：
 
-- 扩充 Case 集：补充 safety\_boundary（辱骂/越权/注入）和 adversarial（对抗样本）
-- Judge 模型独立性：当前 Judge 与 Main\_Agent 共用同一模型，存在评分偏差风险。需引入线上真实对话的 badcase 回归机制，持续校准各维度评分阈值，避免评测标准脱离实际业务场景
-- 评测自动化 CI：接入 GitHub Actions 自动跑评测
+- Demo 需要稳定、可恢复
+- 用户又需要“真的被记住”的体验
+- overlay 让两者兼得：既能写入，又能随时回退
 
-### 可观测性
+## 当前待完善方向
 
-- 结构化日志平台：从 console.log 迁移到统一日志系统
-- 编排链路追踪：可视化 Agent 调用链与耗时分析
-- 实时监控告警：RTC 建会成功率、RAG 检索延迟等核心指标
+- 前端对 `proactive_cue` 的主动播报消费仍可继续强化
+- 多源知识库的多模态内容仍可继续扩展到图片/视频级别
+- 评测系统仍需要进一步引入线上真实 badcase 做校准
+- 复合任务的子查询 purity、strategy 战术正确性、main_fast 自然度仍需持续打磨
+- 失败重试、自纠、任务暂停恢复与 RTC 轻互动链路仍有继续收敛和工程化的空间
+- README 在线查看器当前是轻量 Markdown 渲染器，后续可升级为更完整的渲染方案
 
-***
+## 相关文档
 
-## 许可证
+- `docs/agent-system-interfaces.md`：系统接口与事件流说明
+- `auto_eval_lite/README.md`：自动评测体系说明
+- `技术复盘报告.md`：项目演进复盘
+- `mock-server/README.md`：本地 mock 联调说明
 
-Private — 仅供内部 Demo 与学习参考使用。
+## 说明
+
+本项目当前更适合作为：
+
+- 游戏 AI 助手的产品原型
+- 多模态 Agent 系统的工程实验场
+- 异步反思、分层记忆、多源 RAG、屏幕感知闭环的参考实现
+
+如果你想快速了解这个项目，建议优先看这四个地方：
+
+1. `main.js`：前端总调度与交互闭环
+2. `volc-aigc-rtc-server/src/server.js`：统一服务入口
+3. `volc-aigc-rtc-server/src/services/agentOrchestratorService.js`：编排核心
+4. `volc-aigc-rtc-server/src/services/agentContextService.js`：上下文系统核心

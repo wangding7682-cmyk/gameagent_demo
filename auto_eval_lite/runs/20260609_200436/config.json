@@ -1,0 +1,15 @@
+{
+  "run_id": "20260609_200436",
+  "timestamp": "2026-06-09T12:59:20.718Z",
+  "cases_path": "data/cases.jsonl",
+  "mode": "llm",
+  "judge_model": "ep-20260430103756-7wgz4",
+  "tracks_filter": [
+    "main_fast",
+    "compound"
+  ],
+  "total_cases": 50,
+  "judged_rows": 45,
+  "failure_count": 15,
+  "parse_error_count": 0
+}

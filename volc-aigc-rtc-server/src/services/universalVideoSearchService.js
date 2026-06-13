@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { searchDouyinVideo } from './douyinVideoSearchService.js';
+import { safeFetchText } from '../utils/http.js';
 
 const SEARCH_TIMEOUT_MS = 12000;
 const META_FETCH_TIMEOUT_MS = 8000;
@@ -12,25 +12,17 @@ const DEFAULT_HEADERS = {
   'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
 };
 
+function buildBilibiliSearchPageUrl(query = '') {
+  const keyword = String(query || '').trim();
+  return `https://search.bilibili.com/all?keyword=${encodeURIComponent(keyword)}&order=click`;
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
 
 function logUniversal(message, data = {}) {
   console.log(`[UniversalVideo] ${message}`, { at: nowIso(), ...data });
-}
-
-function withTimeout(promise, ms, label) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) =>
-      setTimeout(() => {
-        const err = new Error(`${label} 超时 (${ms}ms)`);
-        err.code = 'TIMEOUT';
-        reject(err);
-      }, ms)
-    ),
-  ]);
 }
 
 function decodeHtmlEntities(text) {
@@ -76,6 +68,13 @@ function isPlayableDirectUrl(url) {
   return false;
 }
 
+function buildDouyinSearchPageUrl(query = '') {
+  const keyword = String(query || '').trim();
+  // Douyin's query-param search URL often lands on "page unavailable" on desktop.
+  // The path form is the stable public search entry.
+  return `https://www.douyin.com/search/${encodeURIComponent(keyword)}?type=video`;
+}
+
 function detectPlatformFromUrl(url) {
   const host = (url || '').toLowerCase();
   if (/bilibili\.com|b23\.tv/i.test(host)) return 'bilibili';
@@ -96,12 +95,12 @@ function buildBilibiliEmbedUrl(pageUrl) {
 }
 
 async function fetchPageMeta(pageUrl) {
-  const resp = await fetch(pageUrl, {
+  const html = await safeFetchText(pageUrl, {
     headers: DEFAULT_HEADERS,
     redirect: 'follow',
+    timeoutMs: META_FETCH_TIMEOUT_MS,
   });
-  const html = await resp.text();
-  const finalUrl = resp.url || pageUrl;
+  const finalUrl = pageUrl; // Cannot reliably get redirected URL from safeFetchText easily without changing it, but usually pageUrl is enough
 
   function extractMeta(key) {
     const patterns = [
@@ -154,17 +153,27 @@ async function fetchPageMeta(pageUrl) {
   };
 }
 
-async function searchBilibili(query) {
-  logUniversal('search_bilibili_start', { query });
+export async function searchBilibili(query, options = {}) {
+  const timeoutMs = Number(options.timeoutMs || SEARCH_TIMEOUT_MS);
+  logUniversal('search_bilibili_start', { query, fastMode: options.fastMode === true, timeoutMs });
   try {
-    const keyword = encodeURIComponent(query);
-    const searchUrl = `https://search.bilibili.com/all?keyword=${keyword}&order=click`;
-    const resp = await withTimeout(
-      fetch(searchUrl, { headers: DEFAULT_HEADERS, redirect: 'follow' }),
-      SEARCH_TIMEOUT_MS,
-      'B站搜索'
-    );
-    const html = await resp.text();
+    const searchUrl = buildBilibiliSearchPageUrl(query);
+    if (options.directSearchOnly === true) {
+      return {
+        playableUrl: '',
+        pageUrl: searchUrl,
+        title: `B站搜索：${query}`,
+        description: `点击前往B站搜索页，可直接浏览相关视频。`,
+        coverUrl: '',
+        sourcePlatform: 'bilibili',
+        searchUrl,
+      };
+    }
+    const html = await safeFetchText(searchUrl, {
+      headers: DEFAULT_HEADERS,
+      redirect: 'follow',
+      timeoutMs,
+    });
 
     const videoLinks = [];
     const linkRegex = /href="\/\/(www\.bilibili\.com\/video\/BV[^"]+)"/gi;
@@ -190,8 +199,19 @@ async function searchBilibili(query) {
     let title = `B站视频：${query}`;
     let description = '';
     let coverUrl = '';
+    if (options.skipMeta === true) {
+      logUniversal('search_bilibili_fast_page', { query, pageUrl: firstLink });
+      return {
+        playableUrl: '',
+        pageUrl: firstLink,
+        title,
+        description: `已找到B站相关视频，点击即可观看。`,
+        coverUrl,
+        sourcePlatform: 'bilibili',
+      };
+    }
     try {
-      const meta = await withTimeout(fetchPageMeta(firstLink), META_FETCH_TIMEOUT_MS, 'B站视频元数据');
+      const meta = await fetchPageMeta(firstLink);
       title = meta.title || title;
       description = meta.description || description;
       coverUrl = meta.coverUrl || coverUrl;
@@ -227,74 +247,18 @@ async function searchBilibili(query) {
   }
 }
 
-async function searchDouyin(query) {
+export async function searchDouyin(query) {
   logUniversal('search_douyin_start', { query });
-  try {
-    const result = await withTimeout(searchDouyinVideo({ query, allowFallback: true }), SEARCH_TIMEOUT_MS, '抖音搜索');
-
-    if (result.videoUrl && isPlayableDirectUrl(result.videoUrl)) {
-      logUniversal('search_douyin_found_playable', {
-        query,
-        title: result.title,
-        playableUrl: result.videoUrl.slice(0, 80),
-      });
-      return {
-        playableUrl: result.videoUrl,
-        pageUrl: result.url || '',
-        title: result.title,
-        description: result.description || '',
-        coverUrl: result.coverUrl || '',
-        sourcePlatform: 'douyin',
-      };
-    }
-
-    if (result.url) {
-      logUniversal('search_douyin_no_direct_link', {
-        query,
-        title: result.title,
-        pageUrl: result.url,
-      });
-
-      try {
-        const meta = await withTimeout(fetchPageMeta(result.url), META_FETCH_TIMEOUT_MS, '抖音页面二次解析');
-        if (meta.playableUrl) {
-          return {
-            playableUrl: meta.playableUrl,
-            pageUrl: meta.finalUrl,
-            title: meta.title || result.title,
-            description: meta.description || result.description,
-            coverUrl: meta.coverUrl || result.coverUrl,
-            sourcePlatform: 'douyin',
-          };
-        }
-      } catch (_) {}
-
-      return {
-        playableUrl: '',
-        pageUrl: result.url,
-        title: result.title,
-        description: result.description,
-        coverUrl: result.coverUrl,
-        sourcePlatform: 'douyin',
-      };
-    }
-
-    if (result.searchUrl) {
-      return {
-        playableUrl: '',
-        pageUrl: result.searchUrl,
-        title: result.title || `抖音搜索：${query}`,
-        description: result.description || `暂未检索到"${query}"的抖音视频，可点击前往搜索页查找。`,
-        coverUrl: '',
-        sourcePlatform: 'douyin',
-      };
-    }
-
-    return null;
-  } catch (error) {
-    logUniversal('search_douyin_error', { query, message: error.message });
-    return null;
-  }
+  const pageUrl = buildDouyinSearchPageUrl(query);
+  return {
+    playableUrl: '',
+    pageUrl,
+    title: `抖音搜索：${query}`,
+    description: `点击前往抖音搜索页查看"${query}"相关视频。`,
+    coverUrl: '',
+    sourcePlatform: 'douyin',
+    searchUrl: pageUrl,
+  };
 }
 
 async function searchGeneric(query) {
@@ -305,13 +269,12 @@ async function searchGeneric(query) {
     const searchPath = `${config.videoSearch.path}?q=${encodedKeyword}&setlang=zh-CN`;
     const searchUrl = `https://${config.videoSearch.host}${searchPath}`;
 
-    const resp = await withTimeout(
-      fetch(searchUrl, { headers: DEFAULT_HEADERS, redirect: 'follow' }),
-      SEARCH_TIMEOUT_MS,
-      '通用搜索'
-    );
+    const html = await safeFetchText(searchUrl, {
+      headers: DEFAULT_HEADERS,
+      redirect: 'follow',
+      timeoutMs: SEARCH_TIMEOUT_MS,
+    });
 
-    const html = await resp.text();
     const urlPattern = /href="(https?:\/\/[^"]+)"/gi;
     const candidates = [];
     let m;
@@ -343,7 +306,7 @@ async function searchGeneric(query) {
       }
 
       try {
-        const meta = await withTimeout(fetchPageMeta(url), META_FETCH_TIMEOUT_MS, '通用视频元数据');
+        const meta = await fetchPageMeta(url);
         if (meta.playableUrl) {
           logUniversal('search_generic_found_via_meta', {
             query,
@@ -375,8 +338,17 @@ export async function searchUniversalVideo(body = {}) {
   const bilibiliQuery = String(body.bilibiliQuery || query).trim();
   const douyinQuery = String(body.douyinQuery || query).trim();
   const genericQuery = String(body.genericQuery || query).trim();
+  const fastMode = body.fastMode !== false;
 
-  logUniversal('search_start', { query, bilibiliQuery, douyinQuery, genericQuery });
+  logUniversal('search_start', { query, bilibiliQuery, douyinQuery, genericQuery, fastMode });
+
+  if (fastMode) {
+    const bilibili = await searchBilibili(bilibiliQuery, { directSearchOnly: true, fastMode: true });
+    return {
+      ...bilibili,
+      douyinSearchUrl: buildDouyinSearchPageUrl(douyinQuery),
+    };
+  }
 
   const sources = [
     { name: 'bilibili', fn: () => searchBilibili(bilibiliQuery) },

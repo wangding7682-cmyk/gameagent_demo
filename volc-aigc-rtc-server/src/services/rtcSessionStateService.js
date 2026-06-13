@@ -34,6 +34,10 @@ function writeSessions(sessions) {
   );
 }
 
+function sortSessionsByUpdatedAtDesc(sessions = []) {
+  return [...sessions].sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+}
+
 function normalizePromptMessages(messages = []) {
   const filtered = messages
     .filter((item) => item && (item.role === 'user' || item.role === 'assistant'))
@@ -159,9 +163,47 @@ export function getRtcSessionByRoomId(roomId = '') {
   }
 
   const sessions = readSessions();
-  const matched = sessions
-    .filter((item) => item.roomId === normalizedRoomId)
-    .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+  const matched = sortSessionsByUpdatedAtDesc(
+    sessions.filter((item) => item.roomId === normalizedRoomId)
+  );
+  return matched[0] || null;
+}
+
+export function findRecentRtcSession({
+  taskId = '',
+  sessionId = '',
+  userId = '',
+  roomId = '',
+} = {}) {
+  const normalizedTaskId = String(taskId || '').trim();
+  const normalizedSessionId = String(sessionId || '').trim();
+  const normalizedUserId = String(userId || '').trim();
+  const normalizedRoomId = String(roomId || '').trim();
+
+  const sessions = readSessions();
+  if (normalizedTaskId) {
+    return sessions.find((item) => item.taskId === normalizedTaskId) || null;
+  }
+
+  const matched = sortSessionsByUpdatedAtDesc(
+    sessions.filter((item) => {
+      if (normalizedRoomId && item.roomId !== normalizedRoomId) {
+        return false;
+      }
+      if (normalizedUserId && item.userId !== normalizedUserId) {
+        return false;
+      }
+      if (
+        normalizedSessionId &&
+        item.userId !== normalizedSessionId &&
+        String(item?.metadata?.sessionId || '').trim() !== normalizedSessionId
+      ) {
+        return false;
+      }
+      return Boolean(item?.taskId && item?.roomId);
+    })
+  );
+
   return matched[0] || null;
 }
 

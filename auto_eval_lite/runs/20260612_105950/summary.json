@@ -1,0 +1,109 @@
+{
+  "total_cases": 50,
+  "judged_rows": 4,
+  "grand_avg_overall": 7,
+  "parse_error_count": 0,
+  "by_track": {
+    "conversation": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "pass_rate": 100,
+      "avg_overall_score": 7,
+      "dimension_averages": {
+        "topic_continuity": 7,
+        "drift_control": 7,
+        "topic_recovery": 7,
+        "context_grounding": 7,
+        "soulfulness": 7
+      },
+      "low_score_cases": []
+    }
+  },
+  "track_weakness": {
+    "conversation": {
+      "dim": "topic_continuity",
+      "avg": 7
+    }
+  },
+  "by_case": {
+    "AGC-019": {
+      "case_id": "AGC-019",
+      "question": "那他中期怎么carry？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "conversation": {
+          "overall_score": 7,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7
+    },
+    "AGC-024": {
+      "case_id": "AGC-024",
+      "question": "刚才说的那种逆风局，怎么翻盘？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "conversation": {
+          "overall_score": 7,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7
+    },
+    "AGC-030": {
+      "case_id": "AGC-030",
+      "question": "回到刚才那个，走A到底怎么练？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "conversation": {
+          "overall_score": 7,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7
+    },
+    "AGC-036": {
+      "case_id": "AGC-036",
+      "question": "那我这个瓶颈到底该怎么拆？别只哄我。",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "conversation": {
+          "overall_score": 7,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 7
+    }
+  },
+  "audit_summary": [],
+  "routing_accuracy": {
+    "total_routed": 50,
+    "matched": 50,
+    "mismatched": 0,
+    "rate": 100,
+    "mismatches": []
+  },
+  "compound_decomposition_accuracy": {
+    "total_compound_cases": 8,
+    "compound_judged": 0,
+    "correctly_decomposed": 0,
+    "rate": null,
+    "taskplanner_capable": 0,
+    "taskplanner_capable_rate": null,
+    "route_short_circuit_loss": 0,
+    "misdecomposed": []
+  }
+}

@@ -6,6 +6,9 @@ import { taskStore } from './taskFsmService.js';
 
 const DATA_ROOT = path.resolve(config.projectRoot, './data');
 
+// Overlay 三小时 TTL，惰性回退：超时仅在读取时忽略，不真删文件，避免并发问题。
+const OVERLAY_TTL_MS = 3 * 60 * 60 * 1000;
+
 // 长期记忆本地缓存：userId -> { data, expiresAt }
 const ltmCache = new Map();
 const LTM_CACHE_TTL_MS = 50_000;
@@ -122,10 +125,67 @@ export function loadPersona(personaId = 'main-agent') {
   return deepMerge(DEFAULT_PERSONA, readJsonFile(filePath, {}));
 }
 
+// ---- Baseline + Overlay 路径解析 ----
+// 读取顺序：overlay (未过期) > 旧 legacy 文件 > baseline > 默认。
+// 写入路径统一指向 overlay；baseline 仅在 createUserProfile 时落盘，且后续不再修改。
+
+function getUserPaths(id) {
+  return {
+    overlay: path.join(DATA_ROOT, 'users', `${id}.overlay.json`),
+    baseline: path.join(DATA_ROOT, 'users', `${id}.baseline.json`),
+    legacy: path.join(DATA_ROOT, 'users', `${id}.json`),
+  };
+}
+
+function getMemoryPaths(id) {
+  return {
+    overlay: path.join(DATA_ROOT, 'memory', `${id}.overlay.longterm.json`),
+    baseline: path.join(DATA_ROOT, 'memory', `${id}.baseline.longterm.json`),
+    legacy: path.join(DATA_ROOT, 'memory', `${id}.longterm.json`),
+  };
+}
+
+// 取 overlay 数据；若过期返回 null 让上层回退 baseline。
+function readOverlayIfFresh(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  const overlay = readJsonFile(filePath, null);
+  if (!overlay || typeof overlay !== 'object') return null;
+  const updatedAt = Date.parse(overlay.updated_at || '') || 0;
+  if (!updatedAt) return null;
+  if (Date.now() - updatedAt > OVERLAY_TTL_MS) return null;
+  return overlay;
+}
+
+// 兼容旧版本：将 legacy {id}.json / {id}.longterm.json 视为 baseline 提升。
+function readBaselineWithLegacyFallback(baselinePath, legacyPath, fallback) {
+  if (fs.existsSync(baselinePath)) {
+    return readJsonFile(baselinePath, fallback);
+  }
+  if (fs.existsSync(legacyPath)) {
+    const legacy = readJsonFile(legacyPath, null);
+    if (legacy && typeof legacy === 'object') {
+      try {
+        fs.mkdirSync(path.dirname(baselinePath), { recursive: true });
+        fs.writeFileSync(baselinePath, JSON.stringify(legacy, null, 2), 'utf8');
+      } catch (e) {
+        console.warn('[AgentProfileLoader] baseline 升级失败', e?.message);
+      }
+      return legacy;
+    }
+  }
+  return fallback;
+}
+
 export function loadUserProfile(userId = 'default') {
   const id = safeId(userId || 'default');
-  const filePath = path.join(DATA_ROOT, 'users', `${id}.json`);
-  const profile = deepMerge(DEFAULT_USER_PROFILE, readJsonFile(filePath, {}));
+  const { overlay: overlayPath, baseline: baselinePath, legacy: legacyPath } = getUserPaths(id);
+  const overlay = readOverlayIfFresh(overlayPath);
+  if (overlay) {
+    const merged = deepMerge(DEFAULT_USER_PROFILE, overlay);
+    return { ...merged, user_id: merged.user_id || id };
+  }
+  const baseline = readBaselineWithLegacyFallback(baselinePath, legacyPath, {});
+  const profile = deepMerge(DEFAULT_USER_PROFILE, baseline);
   return { ...profile, user_id: profile.user_id || id };
 }
 
@@ -147,13 +207,94 @@ export function loadLongTermMemory(userId = 'default', turnId = '') {
     if (turnId) taskStore.setTurnCache(turnId, `ltm:${id}`, result);
     return result;
   }
-  // 3. 文件回退
-  const filePath = path.join(DATA_ROOT, 'memory', `${id}.longterm.json`);
-  const memory = deepMerge(DEFAULT_LONG_TERM_MEMORY, readJsonFile(filePath, {}));
+  // 3. 文件回退（overlay 优先，其次 baseline）
+  const { overlay: overlayPath, baseline: baselinePath, legacy: legacyPath } = getMemoryPaths(id);
+  const overlay = readOverlayIfFresh(overlayPath);
+  let memorySource;
+  if (overlay) {
+    memorySource = overlay;
+  } else {
+    memorySource = readBaselineWithLegacyFallback(baselinePath, legacyPath, {});
+  }
+  const memory = deepMerge(DEFAULT_LONG_TERM_MEMORY, memorySource);
   const result = { ...memory, user_id: memory.user_id || id };
-  ltmCache.set(id, { data: result, expiresAt: now + LTM_CACHE_TTL_MS });
+  // overlay 期间使用更短缓存，避免长期记忆/喜好回退后用户仍读到老 overlay
+  const cacheTtl = overlay ? Math.min(LTM_CACHE_TTL_MS, 10_000) : LTM_CACHE_TTL_MS;
+  ltmCache.set(id, { data: result, expiresAt: now + cacheTtl });
   if (turnId) taskStore.setTurnCache(turnId, `ltm:${id}`, result);
   return result;
+}
+
+// ---- Overlay 写入 ----
+// 任意修改 user profile 或 long term memory 都写入 overlay 文件并刷新 updated_at。
+
+export function writeUserProfileOverlay(userId, nextProfile) {
+  const id = safeId(userId || 'default');
+  const { overlay } = getUserPaths(id);
+  fs.mkdirSync(path.dirname(overlay), { recursive: true });
+  const payload = {
+    ...nextProfile,
+    user_id: nextProfile?.user_id || id,
+    updated_at: new Date().toISOString(),
+  };
+  fs.writeFileSync(overlay, JSON.stringify(payload, null, 2), 'utf8');
+  return overlay;
+}
+
+export function writeLongTermMemoryOverlay(userId, nextMemory) {
+  const id = safeId(userId || 'default');
+  const { overlay } = getMemoryPaths(id);
+  fs.mkdirSync(path.dirname(overlay), { recursive: true });
+  const payload = {
+    ...nextMemory,
+    user_id: nextMemory?.user_id || id,
+    updated_at: new Date().toISOString(),
+  };
+  fs.writeFileSync(overlay, JSON.stringify(payload, null, 2), 'utf8');
+  ltmCache.delete(id);
+  return overlay;
+}
+
+// 主动重置：删除 overlay 文件，立即回到 baseline。
+export function resetUserOverlay(userId) {
+  const id = safeId(userId || 'default');
+  const { overlay: userOverlay } = getUserPaths(id);
+  const { overlay: memOverlay } = getMemoryPaths(id);
+  for (const p of [userOverlay, memOverlay]) {
+    try { if (fs.existsSync(p)) fs.unlinkSync(p); } catch (e) { /* ignore */ }
+  }
+  ltmCache.delete(id);
+  return { user_id: id };
+}
+
+// 计算 overlay 状态（供 UI 展示剩余时间 / 是否生效）
+export function getOverlayStatus(userId) {
+  const id = safeId(userId || 'default');
+  const { overlay: userOverlay } = getUserPaths(id);
+  const { overlay: memOverlay } = getMemoryPaths(id);
+
+  function inspect(filePath) {
+    if (!fs.existsSync(filePath)) return { exists: false, active: false, expires_at: null, expires_in_ms: 0 };
+    const data = readJsonFile(filePath, null);
+    const updatedAt = Date.parse(data?.updated_at || '') || 0;
+    if (!updatedAt) return { exists: true, active: false, expires_at: null, expires_in_ms: 0 };
+    const expiresAt = updatedAt + OVERLAY_TTL_MS;
+    const remain = expiresAt - Date.now();
+    return {
+      exists: true,
+      active: remain > 0,
+      updated_at: new Date(updatedAt).toISOString(),
+      expires_at: new Date(expiresAt).toISOString(),
+      expires_in_ms: Math.max(0, remain),
+    };
+  }
+
+  return {
+    user_id: id,
+    overlay_ttl_ms: OVERLAY_TTL_MS,
+    user_profile: inspect(userOverlay),
+    long_term_memory: inspect(memOverlay),
+  };
 }
 
 export function loadAgentPreferences() {
@@ -168,4 +309,86 @@ export function getAgentProfileBundle({ userId = 'default', personaId = 'main-ag
     longTermMemory: loadLongTermMemory(userId),
     preferences: loadAgentPreferences(),
   };
+}
+
+export function listUserProfiles() {
+  const dir = path.join(DATA_ROOT, 'users');
+  const idSet = new Set();
+  try {
+    for (const name of fs.readdirSync(dir)) {
+      const lower = name.toLowerCase();
+      if (!lower.endsWith('.json')) continue;
+      let id;
+      if (lower.endsWith('.baseline.json')) id = name.slice(0, -'.baseline.json'.length);
+      else if (lower.endsWith('.overlay.json')) id = name.slice(0, -'.overlay.json'.length);
+      else id = name.slice(0, -'.json'.length);
+      if (id) idSet.add(id);
+    }
+  } catch (e) {
+    return [];
+  }
+  const list = [];
+  for (const id of idSet) {
+    try {
+      const profile = loadUserProfile(id);
+      const overlayStatus = getOverlayStatus(id);
+      const memoryPaths = getMemoryPaths(id);
+      const hasLtm = fs.existsSync(memoryPaths.baseline)
+        || fs.existsSync(memoryPaths.legacy)
+        || fs.existsSync(memoryPaths.overlay);
+      list.push({
+        user_id: profile.user_id || id,
+        display_name: profile.display_name || profile.user_id || id,
+        primary_game: profile.game_profile?.primary_game || '',
+        rank_tier: profile.game_profile?.rank_tier || '',
+        preferred_roles: Array.isArray(profile.game_profile?.preferred_roles)
+          ? profile.game_profile.preferred_roles
+          : [],
+        has_long_term_memory: hasLtm,
+        overlay: {
+          user_profile_active: overlayStatus.user_profile.active,
+          long_term_memory_active: overlayStatus.long_term_memory.active,
+          expires_in_ms: Math.max(
+            overlayStatus.user_profile.expires_in_ms,
+            overlayStatus.long_term_memory.expires_in_ms,
+          ),
+        },
+      });
+    } catch (e) {
+      list.push({ user_id: id, display_name: id, has_long_term_memory: false });
+    }
+  }
+  list.sort((a, b) => {
+    if (a.user_id === 'default') return -1;
+    if (b.user_id === 'default') return 1;
+    return String(a.user_id).localeCompare(String(b.user_id));
+  });
+  return list;
+}
+
+export function createUserProfile({ userId = '', displayName = '' } = {}) {
+  const id = safeId(userId || '').toLowerCase();
+  if (!id || id === 'default') {
+    throw new Error('用户 ID 非法');
+  }
+  const { baseline: userBaseline, legacy: userLegacy } = getUserPaths(id);
+  if (fs.existsSync(userBaseline) || fs.existsSync(userLegacy)) {
+    throw new Error(`用户 ${id} 已存在`);
+  }
+  const profile = {
+    ...DEFAULT_USER_PROFILE,
+    user_id: id,
+    display_name: displayName || id,
+  };
+  fs.mkdirSync(path.dirname(userBaseline), { recursive: true });
+  fs.writeFileSync(userBaseline, JSON.stringify(profile, null, 2), 'utf8');
+
+  const { baseline: memoryBaseline } = getMemoryPaths(id);
+  if (!fs.existsSync(memoryBaseline)) {
+    fs.mkdirSync(path.dirname(memoryBaseline), { recursive: true });
+    const ltm = { ...DEFAULT_LONG_TERM_MEMORY, user_id: id };
+    fs.writeFileSync(memoryBaseline, JSON.stringify(ltm, null, 2), 'utf8');
+  }
+  ltmCache.delete(id);
+  return profile;
 }

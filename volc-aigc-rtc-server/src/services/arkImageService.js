@@ -1,4 +1,6 @@
 import { assertArkImageConfig, config } from '../config.js';
+import { safeFetchJson } from '../utils/http.js';
+import { sanitizeKnowledgeCardImagePrompt } from './knowledgeCardStyleService.js';
 
 function normalizeImageError(responseData) {
   if (!responseData || typeof responseData !== 'object') {
@@ -34,7 +36,10 @@ export async function generateArkImage(body = {}) {
   assertArkImageConfig();
   const startedAt = Date.now();
 
-  const prompt = String(body.prompt || '').trim();
+  // 兜底守门：所有进来的 prompt 都强制走"信息卡片"风格过滤
+  // 即使 strategyAgentService 没过滤，这里也一定会过滤
+  const sanitized = sanitizeKnowledgeCardImagePrompt(body.prompt);
+  const prompt = String(sanitized || '').trim();
   if (!prompt) {
     throw new Error('图片生成需要 prompt');
   }
@@ -51,9 +56,9 @@ export async function generateArkImage(body = {}) {
       body.watermark === undefined ? config.ark.watermark : body.watermark === true,
   };
 
-  let response;
+  let responseData;
   try {
-    response = await fetch(
+    responseData = await safeFetchJson(
       `https://${config.ark.host}${config.ark.imageGenerationPath}`,
       {
         method: 'POST',
@@ -62,6 +67,7 @@ export async function generateArkImage(body = {}) {
           Authorization: `Bearer ${config.ark.apiKey}`,
         },
         body: JSON.stringify(payload),
+        timeoutMs: config.ark.imageTimeoutMs,
       }
     );
   } finally {
@@ -72,26 +78,9 @@ export async function generateArkImage(body = {}) {
     });
   }
 
-  const rawText = await response.text();
-  let responseData = null;
-
-  try {
-    responseData = rawText ? JSON.parse(rawText) : {};
-  } catch (_) {
-    throw new Error(`方舟图片生成接口返回了非 JSON 响应: ${rawText}`);
-  }
-
   const apiError = normalizeImageError(responseData);
   if (apiError) {
     throw apiError;
-  }
-
-  if (!response.ok) {
-    const unknownError = new Error(
-      `方舟图片生成接口返回 HTTP ${response.status}`
-    );
-    unknownError.response = responseData;
-    throw unknownError;
   }
 
   const imageUrl = pickImageUrl(responseData);

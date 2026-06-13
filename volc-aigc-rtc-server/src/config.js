@@ -122,11 +122,24 @@ export const config = {
     apiKey: process.env.ARK_API_KEY || '',
     imageModel: process.env.ARK_IMAGE_MODEL || 'ep-20260505234424-d7khd',
     chatModel: process.env.ARK_CHAT_MODEL || 'ep-20260430103756-7wgz4',
+    chatModelLite: process.env.ARK_CHAT_MODEL_LITE || process.env.ARK_CHAT_MODEL || 'ep-20260430103756-7wgz4',
     imageSize: process.env.ARK_IMAGE_SIZE || '2K',
+    imageTimeoutMs: Number(process.env.ARK_IMAGE_TIMEOUT_MS || 50000),
     sequentialImageGeneration:
       process.env.ARK_IMAGE_SEQUENTIAL_GENERATION || 'disabled',
     responseFormat: process.env.ARK_IMAGE_RESPONSE_FORMAT || 'url',
     watermark: process.env.ARK_IMAGE_WATERMARK !== '0',
+  },
+  knowledgeCard: {
+    // 知识卡片风格档位：infographic_minimal | freestyle
+    // infographic_minimal = 强制信息图风（默认，推荐）
+    // freestyle           = 跳过 sanitize（仅供历史回归 / 调试）
+    styleHint: process.env.KNOWLEDGE_CARD_STYLE || 'infographic_minimal',
+    palette: {
+      bg: process.env.KNOWLEDGE_CARD_BG || '#FFFFFF',
+      title: process.env.KNOWLEDGE_CARD_TITLE_COLOR || '#1A1A1A',
+      accent: process.env.KNOWLEDGE_CARD_ACCENT || '#FF8A2D',
+    },
   },
   tts: {
     host: process.env.VOLC_TTS_HOST || 'openspeech.bytedance.com',
@@ -196,6 +209,10 @@ export const config = {
     process.env.RTC_TOKEN_GENERATOR_PATH || './vendor/rtc-token-generator.js'
   ),
 };
+
+export function loadEnv() {
+  return config;
+}
 
 export function assertOpenApiConfig() {
   const missing = [];

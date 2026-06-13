@@ -96,10 +96,12 @@ function isSpeakableVoiceDelta(data = {}) {
 }
 
 export async function handleRtcLlmStream(body, response, sessionId) {
+  const arrivedAt = Date.now();
   const messages = Array.isArray(body.messages) ? body.messages : [];
   const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
   const userQuery = String(lastUserMessage?.content || '').trim();
 
+  console.log(`[RtcTiming:CustomLLM] arrivedAt=${arrivedAt} sessionId=${sessionId || 'default'} userQuery="${userQuery}"`);
   console.log(`[RtcLlmBridge] === CustomLLM request === sessionId=${sessionId} userQuery="${userQuery}"`);
 
   if (!userQuery) {
@@ -153,7 +155,8 @@ export async function handleRtcLlmStream(body, response, sessionId) {
         if (speech) {
           ttsChunkCount++;
           const latency = Date.now() - startedAt;
-          console.log(`[RtcLlmBridge:TTS] chunk#${ttsChunkCount} (main_reply) latency=${latency}ms | speech="${speech}"`);
+          const sinceArrivedMs = Date.now() - arrivedAt;
+          console.log(`[RtcLlmBridge:TTS] chunk#${ttsChunkCount} (main_reply) latency=${latency}ms sinceArrivedMs=${sinceArrivedMs}ms | speech="${speech}"`);
           writeOpenAiSseChunk(response, chunkId, speech);
           appendTtsTextSent(sessionId || 'default', speech);
         } else {
@@ -193,7 +196,8 @@ export async function handleRtcLlmStream(body, response, sessionId) {
     });
 
     const totalLatency = Date.now() - startedAt;
-    console.log(`[RtcLlmBridge] === orchestration done === totalLatency=${totalLatency}ms ttsChunks=${ttsChunkCount}`);
+    const totalSinceArrivedMs = Date.now() - arrivedAt;
+    console.log(`[RtcLlmBridge] === orchestration done === totalLatency=${totalLatency}ms sinceArrivedMs=${totalSinceArrivedMs}ms ttsChunks=${ttsChunkCount}`);
     writeOpenAiSseChunk(response, chunkId, '', { finish: true });
     writeOpenAiSseDone(response);
   } catch (error) {

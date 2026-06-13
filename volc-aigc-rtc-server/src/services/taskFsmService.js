@@ -62,9 +62,9 @@ export class TaskStateStore {
     this.turnCaches.delete(turnId);
   }
 
-  createTask({ turnId, sessionId, userQuery, source, intent = 'unknown' }) {
+  createTask({ taskId, turnId, sessionId, userQuery, source, intent = 'unknown' }) {
     const task = {
-      task_id: createTaskId(intent),
+      task_id: taskId || createTaskId(intent),
       turn_id: turnId,
       session_id: sessionId,
       source,
@@ -152,7 +152,7 @@ export class TaskStateStore {
 
 export class IntentConcurrencyPool {
   constructor(limits = {}) {
-    this.limits = { strategy: 2, video: 2, ...limits };
+    this.limits = { strategy: 5, video: 5, ...limits };
     this.running = { strategy: new Set(), video: new Set() };
     this.queues = { strategy: [], video: [] };
   }
@@ -191,6 +191,37 @@ export class IntentConcurrencyPool {
     };
   }
 
+  /**
+   * 非阻塞快速获取：有槽位立即占用并返回 release 句柄，无槽位返回 null。
+   * 用于预判并行化等 fire-and-forget 场景，避免绕过并发上限。
+   */
+  tryAcquire(intent, taskId) {
+    if (!this.isLimited(intent)) {
+      return { release: () => {}, queued: false, queue_position: 0 };
+    }
+    if (this.running[intent].size < this.limits[intent]) {
+      this.running[intent].add(taskId);
+      logTaskFsm('pool_try_acquire_ok', {
+        intent,
+        task_id: taskId,
+        running_count: this.running[intent].size,
+        limit: this.limits[intent],
+      });
+      return {
+        release: () => this.release(intent, taskId),
+        queued: false,
+        queue_position: 0,
+      };
+    }
+    logTaskFsm('pool_try_acquire_fail', {
+      intent,
+      task_id: taskId,
+      running_count: this.running[intent].size,
+      limit: this.limits[intent],
+    });
+    return null;
+  }
+
   acquire(intent, taskId, onQueued = () => {}, options = {}) {
     var priority = this.normalizePriority(options.priority);
 
@@ -223,12 +254,24 @@ export class IntentConcurrencyPool {
     }
 
     var self = this;
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
+      var timeoutMs = options.timeoutMs || 30000;
+      var timeoutId = setTimeout(function () {
+        var index = self.queues[intent].indexOf(entry);
+        if (index !== -1) {
+          self.queues[intent].splice(index, 1);
+          var err = new Error(`并发排队超时(${timeoutMs}ms)`);
+          err.code = 'QUEUE_TIMEOUT';
+          reject(err);
+        }
+      }, timeoutMs);
+
       var entry = {
         taskId: taskId,
         priority: priority,
         enqueuedAt: nowIso(),
         resolve: function () {
+          clearTimeout(timeoutId);
           self.running[intent].add(taskId);
           resolve({
             release: function () { self.release(intent, taskId); },

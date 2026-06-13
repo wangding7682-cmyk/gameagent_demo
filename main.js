@@ -7,6 +7,8 @@ import { DataModule as DataModuleClass } from './src/modules/data/index.js';
 import { Live2dModule } from './src/modules/live2d/index.js';
 import { WorkspaceModule } from './src/modules/workspace/index.js';
 import { AgentModule as AgentModuleClass } from './src/modules/agent/index.js';
+import { UserKnowledgeModule as UserKnowledgeModuleClass } from './src/modules/user-knowledge/index.js';
+import { UserSwitcherModule as UserSwitcherModuleClass } from './src/modules/user-switcher/index.js';
 
 const BaseModule = new BaseModuleClass(EventBus);
 const PetModule = new PetModuleClass();
@@ -14,6 +16,8 @@ const DataModule = new DataModuleClass(EventBus);
 const Live2D = new Live2dModule(EventBus, BaseModule);
 const Workspace = new WorkspaceModule(EventBus, BaseModule);
 const AgentModule = new AgentModuleClass(EventBus);
+const UserKnowledge = new UserKnowledgeModuleClass(EventBus);
+const UserSwitcher = new UserSwitcherModuleClass(EventBus);
 let suppressNextPetRtcOpen = false;
 let lastHandledMode = null;
 let pendingRtcVariant = null;
@@ -42,6 +46,15 @@ let lastRtcTtsPushedSource = '';
 let rtcTtsPushChain = Promise.resolve();
 let activeRtcInteractionTurnId = '';
 let rtcTtsTurnGeneration = 0;
+let backendAvailabilityState = {
+    available: true,
+    failureCount: 0,
+    pausedUntil: 0,
+    lastError: '',
+    bannerReason: '',
+    bannerSource: ''
+};
+let backendStatusBanner = null;
 
 const RTC_ORCHESTRATION_SOURCES = new Set(['rtc_asr', 'rtc_text', 'rtc_subtitle', 'rtc_user_asr']);
 const RTC_ASR_AFTER_TTS_GUARD_MS = 500;
@@ -51,6 +64,96 @@ function getRtcApiBaseUrl() {
     const runtime = typeof window !== 'undefined' ? window.__GAME_AI_RUNTIME__ || {} : {};
     const rtcRuntime = runtime.rtc || {};
     return String(runtime.apiBaseUrl || rtcRuntime.apiBaseUrl || 'http://127.0.0.1:8788').replace(/\/$/, '');
+}
+
+function ensureBackendStatusBanner() {
+    if (typeof document === 'undefined') return null;
+    if (backendStatusBanner?.isConnected) return backendStatusBanner;
+    const banner = document.createElement('div');
+    banner.id = 'backend-status-banner';
+    banner.className = 'backend-status-banner is-hidden';
+    document.body.appendChild(banner);
+    backendStatusBanner = banner;
+    return banner;
+}
+
+function isBackendConnectionError(error) {
+    const message = String(error?.message || error || '');
+    return /failed to fetch|network|connection|refused|reset|abort/i.test(message);
+}
+
+function getBackendRetryDelayMs() {
+    if (backendAvailabilityState.available) return 0;
+    return Math.max(0, Number(backendAvailabilityState.pausedUntil || 0) - Date.now());
+}
+
+function isBackendRequestPaused() {
+    return getBackendRetryDelayMs() > 0;
+}
+
+function syncBackendAvailabilityWindowState() {
+    if (typeof window === 'undefined') return;
+    window.__GAME_AI_BACKEND_STATUS__ = {
+        available: backendAvailabilityState.available,
+        pausedUntil: backendAvailabilityState.pausedUntil,
+        lastError: backendAvailabilityState.lastError,
+        bannerReason: backendAvailabilityState.bannerReason,
+        bannerSource: backendAvailabilityState.bannerSource
+    };
+}
+
+function renderBackendStatusBanner() {
+    const banner = ensureBackendStatusBanner();
+    if (!banner) return;
+    if (backendAvailabilityState.available) {
+        banner.textContent = '';
+        banner.classList.add('is-hidden');
+        return;
+    }
+    const retryMs = getBackendRetryDelayMs();
+    const retryText = retryMs > 0 ? `约 ${Math.max(1, Math.ceil(retryMs / 1000))} 秒后再试。` : '正在等待服务恢复。';
+    const reasonText = backendAvailabilityState.bannerReason || '本地编排后端连接已断开。';
+    banner.textContent = `${reasonText} 当前仅保留 RTC 云端对话；卡片、日志与本地会话同步已暂停，${retryText}`;
+    banner.classList.remove('is-hidden');
+}
+
+function setBackendAvailability(available, payload = {}) {
+    const nextAvailable = available !== false;
+    const source = payload.source || '';
+    const errorMessage = String(payload.error || '');
+    const previousAvailable = backendAvailabilityState.available;
+    if (nextAvailable) {
+        backendAvailabilityState = {
+            available: true,
+            failureCount: 0,
+            pausedUntil: 0,
+            lastError: '',
+            bannerReason: '',
+            bannerSource: source
+        };
+    } else {
+        const failureCount = Math.min((backendAvailabilityState.failureCount || 0) + 1, 6);
+        const delayMs = Math.min(30000, 3000 * (2 ** Math.max(0, failureCount - 1)));
+        backendAvailabilityState = {
+            available: false,
+            failureCount,
+            pausedUntil: Date.now() + delayMs,
+            lastError: errorMessage,
+            bannerReason: payload.reason || '本地编排后端连接已断开。',
+            bannerSource: source
+        };
+    }
+    syncBackendAvailabilityWindowState();
+    renderBackendStatusBanner();
+    if (previousAvailable !== backendAvailabilityState.available) {
+        EventBus.emit('BACKEND_CONNECTIVITY_CHANGED', {
+            available: backendAvailabilityState.available,
+            source,
+            error: errorMessage,
+            pausedUntil: backendAvailabilityState.pausedUntil,
+            reason: backendAvailabilityState.bannerReason
+        });
+    }
 }
 
 function isRtcOriginOrchestrationActive() {
@@ -295,6 +398,8 @@ function formatTraceTime(value = '') {
 
 let agentLogRefreshTimer = null;
 let agentLogIsLoading = false;
+let agentLogLastTracesKey = '';
+let agentLogLastStatusKey = '';
 
 function formatAgentTraceIntent(intent = '') {
     const intentMap = {
@@ -308,8 +413,55 @@ function formatAgentTraceIntent(intent = '') {
     return intentMap[key] || intent || '待识别';
 }
 
+// source 中文字典：把 trace.source 这种英文短码翻译成人能直接看懂的入口标签
+// 覆盖三类来源：① 前端入口（rtc/chat/pet 等）② 后端入口兜底（orchestrate_*/eval_*/direct_invoke）
+// ③ 后端内部子流程（orchestrator/memory_writer/reflector 等）
+function formatAgentTraceSource(source = '') {
+    const sourceMap = {
+        // —— 前端入口（用户在哪个 UI 触发）——
+        rtc_asr: '语音输入',
+        rtc_text: 'RTC文本',
+        chat_input: '聊天框',
+        pet_tap: '戳一戳',
+        agent: 'Agent面板',
+        agent_main: 'Agent主流程',
+        agent_video_failed: 'Agent视频失败',
+        interaction_reply: '互动回复',
+        demo_button: '演示按钮',
+        // —— 后端入口（HTTP 进来时的兜底标签，本轮新加）——
+        orchestrate_trigger: '编排-触发',
+        orchestrate_stream: '编排-流式',
+        orchestrate_start: '编排-同步',
+        eval_silence: '评测-沉默',
+        eval_qa: '评测-问答',
+        direct_invoke: '未声明入口',
+        // —— 后端内部子流程（哪一段代码写下的 trace）——
+        orchestrator: '编排器',
+        memory_writer: '记忆写入',
+        reflector: '反思器',
+        fixed_ack: '固定回应',
+        smalltalk_summary: '闲聊摘要',
+        branch_wait_reply: '等待分支',
+        strategy_retry: '战术重试',
+        strategy_chunk: '战术分片',
+        strategy_degraded: '战术降级',
+        video_ready: '视频就绪',
+        video_degraded: '视频降级',
+        video_failed: '视频失败',
+        local_route_quick: '本地快路由',
+        llm_main_agent: 'LLM主脑',
+        legacy_intent_api: '旧意图接口',
+        // —— 兜底 ——
+        unknown: '未识别',
+        unspecified: '未标注调用'  // bug 信号：开发者调 appendAgentTrace 时漏传 source
+    };
+    const key = String(source || 'unknown');
+    return sourceMap[key] || source || '未识别';
+}
+
 function formatAgentTraceAbility(trace = {}) {
     const intent = String(trace.intent || '').toLowerCase();
+    const secondaryTasks = Array.isArray(trace.output?.secondary_tasks) ? trace.output.secondary_tasks : [];
     const abilityMap = {
         strategy: '生成战术建议',
         video: '查找精彩视频',
@@ -317,7 +469,10 @@ function formatAgentTraceAbility(trace = {}) {
         smalltalk: '直接对话回复'
     };
     if (abilityMap[intent]) {
-        return abilityMap[intent];
+        const secondaryText = secondaryTasks.length
+            ? `；Secondary：${secondaryTasks.map((task) => task.tool === 'video' ? '链接/视频检索' : task.tool === 'strategy' ? '战术/卡片补充' : task.tool).join('、')}`
+            : '';
+        return `${abilityMap[intent]}${secondaryText}`;
     }
 
     const agentName = trace.agent || trace.agent_name || trace.current_agent || '';
@@ -341,6 +496,15 @@ function formatAgentTraceResult(trace = {}) {
     if (trace.knowledge_data?.title || trace.knowledge_title) {
         return `已生成知识卡片：${trace.knowledge_data?.title || trace.knowledge_title}`;
     }
+    // strategy: 优先展示 tactic_data.title，其次展示 main_summary
+    const intent = String(trace.intent || '').toLowerCase();
+    if (intent === 'strategy') {
+        const tacticTitle = trace.output?.tactic_data?.title;
+        if (tacticTitle) return `战术已完成：${tacticTitle}`;
+        const summary = trace.output?.main_summary;
+        if (summary && summary !== '我会结合当前上下文给你一个简洁建议。') return summary;
+        return '战术策略已生成';
+    }
     if (status === 'done' || status === 'success' || status === 'completed') {
         return '任务已完成';
     }
@@ -352,21 +516,34 @@ function formatAgentTraceResult(trace = {}) {
 
 function renderAgentTrace(trace = {}) {
     const timeline = Array.isArray(trace.timeline) ? trace.timeline : [];
-    const firstLatency = timeline.find((item) => Number.isFinite(Number(item.latency_ms)))?.latency_ms;
-    const latencyText = firstLatency === undefined ? '耗时未知' : `${firstLatency}ms`;
+    // 倒序查找最后一项有效的 latency_ms，代表端到端完成的总耗时
+    const lastLatencyItem = [...timeline].reverse().find((item) => Number.isFinite(Number(item.latency_ms)));
+    const latencyText = lastLatencyItem?.latency_ms === undefined ? '耗时未知' : `${(lastLatencyItem.latency_ms / 1000).toFixed(1)}s`;
     const orchestrationInput = String(trace.orchestration_input || trace.user_query || '').trim();
     const rawAsrText = String(trace.raw_asr_text || '').trim();
     const intentText = formatAgentTraceIntent(trace.intent);
     const abilityText = formatAgentTraceAbility(trace);
     const resultText = formatAgentTraceResult(trace);
     const detailJson = escapeHtml(JSON.stringify(trace, null, 2));
+    const hasSecondary = Array.isArray(trace.output?.secondary_tasks) && trace.output.secondary_tasks.length > 0;
+    const rawStatus = trace.status || 'unknown';
+    const statusLabel = (hasSecondary && rawStatus === 'done')
+      ? 'compound'
+      : (hasSecondary && rawStatus === 'degraded')
+        ? 'partial'
+        : rawStatus;
+    const statusTitle = (hasSecondary && rawStatus === 'done')
+      ? '复合任务已完成'
+      : (hasSecondary && rawStatus === 'degraded')
+        ? '复合任务部分完成（主任务降级）'
+        : `状态: ${rawStatus}`;
     return `
         <details class="agent-log-card">
             <summary>
                 <div class="agent-log-row">
-                    <span class="agent-log-chip">${escapeHtml(intentText)}</span>
-                    <span class="agent-log-chip">${escapeHtml(trace.status || 'unknown')}</span>
-                    <span class="agent-log-chip">${escapeHtml(trace.source || 'unknown')}</span>
+                    <span class="agent-log-chip" title="意图: ${escapeHtml(trace.intent || 'unknown')}">${escapeHtml(intentText)}</span>
+                    <span class="agent-log-chip" title="${escapeHtml(statusTitle)}">${escapeHtml(statusLabel)}</span>
+                    <span class="agent-log-chip" title="入口source: ${escapeHtml(trace.source || 'unknown')}">${escapeHtml(formatAgentTraceSource(trace.source))}</span>
                     <span class="agent-log-chip">${escapeHtml(latencyText)}</span>
                 </div>
                 <div class="agent-log-user-view">
@@ -415,21 +592,39 @@ async function loadAgentTraces(options = {}) {
     if (agentLogIsLoading && !options.force) {
         return;
     }
+    const silent = options.silent === true;
+    const retryDelayMs = getBackendRetryDelayMs();
+    if (backendAvailabilityState.available === false && retryDelayMs > 0) {
+        if (!silent) {
+            status.classList.add('is-error');
+            status.textContent = `本地后端已断开，日志轮询已暂停，约 ${Math.max(1, Math.ceil(retryDelayMs / 1000))} 秒后再试。`;
+            if (refreshButton) {
+                refreshButton.disabled = false;
+                refreshButton.textContent = '刷新';
+            }
+        }
+        return;
+    }
 
     agentLogIsLoading = true;
-    status.classList.remove('is-error');
-    status.textContent = '正在加载多Agent任务日志...';
-    if (options.clear !== false) {
-        list.innerHTML = '';
-    }
-    if (refreshButton) {
-        refreshButton.disabled = true;
-        refreshButton.textContent = '刷新中...';
+    if (!silent) {
+        status.classList.remove('is-error');
+        status.textContent = '正在加载多Agent任务日志...';
+        if (options.clear !== false) {
+            list.innerHTML = '';
+            agentLogLastTracesKey = '';
+        }
+        if (refreshButton) {
+            refreshButton.disabled = true;
+            refreshButton.textContent = '刷新中...';
+        }
     }
 
     try {
         const params = new URLSearchParams({
             limit: '80',
+            userOnly: '1',
+            groupByTurn: '1',
             _: String(Date.now())
         });
         const keyword = String(keywordInput?.value || '').trim();
@@ -443,28 +638,51 @@ async function loadAgentTraces(options = {}) {
         if (!response.ok || !json.ok) {
             throw new Error(json.message || `日志查询失败: HTTP ${response.status}`);
         }
-        const allTraces = json.data?.list || [];
-        const traces = allTraces.filter((t) => t.source !== 'memory_writer');
-        const filteredCount = allTraces.length - traces.length;
+        setBackendAvailability(true, {
+            source: 'agent_traces'
+        });
+        const traces = json.data?.list || [];
+        const totalCount = Number(json.data?.total || traces.length);
         traces.sort((a, b) => {
             const timeA = new Date(a.created_at || a.updated_at || 0).getTime();
             const timeB = new Date(b.created_at || b.updated_at || 0).getTime();
             return timeB - timeA;
         });
-        const totalText = filteredCount > 0
-            ? `共 ${allTraces.length} 条（已过滤 ${filteredCount} 条内部记录），展示 ${traces.length} 条多Agent任务。`
-            : `共 ${traces.length} 条多Agent任务。点击卡片可查看开发详情。`;
-        const refreshedAt = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-        status.textContent = traces.length > 0
-            ? `${totalText} 最近刷新：${refreshedAt}`
+        const totalText = totalCount > 0
+            ? `共 ${totalCount} 条用户编排任务${totalCount > traces.length ? `，当前显示最近 ${traces.length} 条` : ''}，点击卡片可查看开发详情。`
             : '暂无多Agent任务日志。请先通过语音、文本或示例卡片触发一次能力。';
-        list.innerHTML = traces.map(renderAgentTrace).join('');
+        const refreshedAt = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+        const statusKey = `${traces.length}|${traces.map((t) => t.trace_id || t.turn_id).join(',')}`;
+        if (!silent || statusKey !== agentLogLastStatusKey) {
+            status.classList.remove('is-error');
+            status.textContent = totalCount > 0
+                ? `${totalText} 最近刷新：${refreshedAt}`
+                : totalText;
+            agentLogLastStatusKey = statusKey;
+        }
+        const tracesKey = traces.map((t) => `${t.trace_id || t.turn_id}:${t.updated_at || t.created_at}`).join('|');
+        if (tracesKey !== agentLogLastTracesKey) {
+            list.innerHTML = traces.map(renderAgentTrace).join('');
+            agentLogLastTracesKey = tracesKey;
+        }
     } catch (error) {
-        status.classList.add('is-error');
-        status.textContent = error.message || '日志查询失败';
+        const isNetworkError = /failed to fetch|fetch|network|connection| refused/i.test(String(error.message || error));
+        if (isNetworkError) {
+            setBackendAvailability(false, {
+                source: 'agent_traces',
+                error: error.message || String(error),
+                reason: '本地编排后端连接失败。'
+            });
+        }
+        if (!silent) {
+            status.classList.add('is-error');
+            status.textContent = isNetworkError
+                ? `服务连接失败，日志轮询已暂停。请确认后端已启动（端口 8788），约 ${Math.max(1, Math.ceil(getBackendRetryDelayMs() / 1000))} 秒后再试。`
+                : (error.message || '日志查询失败');
+        }
     } finally {
         agentLogIsLoading = false;
-        if (refreshButton) {
+        if (!silent && refreshButton) {
             refreshButton.disabled = false;
             refreshButton.textContent = '刷新';
         }
@@ -480,8 +698,11 @@ function startAgentLogAutoRefresh() {
             stopAgentLogAutoRefresh();
             return;
         }
-        loadAgentTraces({ clear: false }).catch(() => {});
-    }, 2000);
+        if (isBackendRequestPaused()) {
+            return;
+        }
+        loadAgentTraces({ clear: false, silent: true }).catch(() => {});
+    }, 500);
 }
 
 function stopAgentLogAutoRefresh() {
@@ -586,6 +807,14 @@ function enqueueRtcSessionMessageSync(payload = {}) {
         return;
     }
 
+    if (isBackendRequestPaused()) {
+        pendingRtcSessionMessages.push(payload);
+        if (pendingRtcSessionMessages.length > 50) {
+            pendingRtcSessionMessages.splice(0, pendingRtcSessionMessages.length - 50);
+        }
+        return;
+    }
+
     const requestBody = {
         taskId: currentRtcSession.taskId,
         role: payload.role,
@@ -607,8 +836,24 @@ function enqueueRtcSessionMessageSync(payload = {}) {
             if (!response.ok || !data?.ok) {
                 throw new Error(data?.message || `同步 RTC 会话消息失败: ${response.status}`);
             }
+            setBackendAvailability(true, {
+                source: 'rtc_session_sync'
+            });
         })
         .catch((error) => {
+            const isNetworkError = isBackendConnectionError(error);
+            if (isNetworkError) {
+                pendingRtcSessionMessages.push(payload);
+                if (pendingRtcSessionMessages.length > 50) {
+                    pendingRtcSessionMessages.splice(0, pendingRtcSessionMessages.length - 50);
+                }
+                setBackendAvailability(false, {
+                    source: 'rtc_session_sync',
+                    error: error.message || String(error),
+                    reason: '本地后端断线，RTC 会话同步已暂停。'
+                });
+                return;
+            }
             console.error('[RTC Session Sync] 同步失败', {
                 error,
                 requestBody
@@ -621,13 +866,22 @@ function enqueueRtcSessionMessageSync(payload = {}) {
 }
 
 function flushPendingRtcSessionMessages() {
-    if (!currentRtcSession?.taskId || pendingRtcSessionMessages.length === 0) {
+    if (!currentRtcSession?.taskId || pendingRtcSessionMessages.length === 0 || isBackendRequestPaused()) {
         return;
     }
 
     const pending = pendingRtcSessionMessages.splice(0, pendingRtcSessionMessages.length);
     pending.forEach((item) => enqueueRtcSessionMessageSync(item));
 }
+
+EventBus.on('BACKEND_CONNECTIVITY_CHANGED', (payload = {}) => {
+    if (payload.available) {
+        flushPendingRtcSessionMessages();
+        if (isAgentLogModalOpen()) {
+            loadAgentTraces({ clear: false, force: true }).catch(() => {});
+        }
+    }
+});
 
 function emitSessionMessage(payload = {}) {
     const text = String(payload.text || '').trim();
@@ -897,14 +1151,67 @@ function stripRtcToolCallArtifacts(text = '') {
         .trim();
 }
 
+function stripRtcReasoningArtifacts(input = '') {
+    if (!input) return '';
+    let out = String(input);
+
+    // 1) 去掉 <think>...</think> 整段（贪婪匹配，跨行）
+    out = out.replace(/<think\b[^>]*>[\s\S]*?<\/think\s*>/gi, ' ');
+    // 残留的孤立 think 起止标签也清掉
+    out = out.replace(/<\/?think\b[^>]*>/gi, ' ');
+
+    // 2) 去掉带随机后缀的 RTC 占位符（防 reasoning 泄漏）
+    //    形如 <[SILENT_never_used_abcdef0123]> / [SILENT_never_used_xxx] / </think_never_used_xxx> / <think_never_used_xxx>
+    out = out.replace(/<\s*\[?\s*SILENT_never_used_[0-9a-f]+\s*\]?\s*>/gi, ' ');
+    out = out.replace(/\[\s*SILENT_never_used_[0-9a-f]+\s*\]/gi, ' ');
+    out = out.replace(/<\s*\/?\s*think_never_used_[0-9a-f]+\s*>/gi, ' ');
+
+    // 3) 通用兜底：任意 *_never_used_<hex> 占位符
+    out = out.replace(/<\s*\/?\s*\[?\s*[A-Za-z]+_never_used_[0-9a-f]+\s*\]?\s*>/gi, ' ');
+
+    return out;
+}
+
+function dedupRtcRepeatedSegments(input = '') {
+    const text = String(input || '').trim();
+    if (text.length < 16) return text;
+
+    // 尝试整段对半重复 (A == A)
+    const half = Math.floor(text.length / 2);
+    for (let cut = half; cut >= Math.floor(text.length / 2) - 2 && cut > 8; cut -= 1) {
+        const a = text.slice(0, cut).trim();
+        const b = text.slice(cut).trim();
+        if (a && a === b) return a;
+    }
+
+    // 尝试以中文标点切分后检测尾段重复
+    const segs = text.split(/(?<=[。！？!?；;])/).map((s) => s.trim()).filter(Boolean);
+    if (segs.length >= 2) {
+        const seen = new Set();
+        const kept = [];
+        for (const s of segs) {
+            const key = s.replace(/\s+/g, '');
+            if (key.length >= 6 && seen.has(key)) continue;
+            seen.add(key);
+            kept.push(s);
+        }
+        const dedup = kept.join('');
+        if (dedup && dedup.length < text.length) return dedup;
+    }
+
+    return text;
+}
+
 function normalizeRtcSessionText(text = '') {
-    const noConv = stripRtcConversationStateArtifacts(text);
+    const noReasoning = stripRtcReasoningArtifacts(text);
+    const noConv = stripRtcConversationStateArtifacts(noReasoning);
     const noStatus = stripRtcStatusAndErrorArtifacts(noConv);
     const noToolCalls = stripRtcToolCallArtifacts(noStatus);
-    return String(noToolCalls || '')
+    const flat = String(noToolCalls || '')
         .replace(/[\u0000-\u001f]+/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
+    return dedupRtcRepeatedSegments(flat);
 }
 
 function emitRtcSessionMessage({ role, text, source, targets }) {
@@ -1333,6 +1640,8 @@ BaseModule.init();
 Live2D.init();
 Workspace.init();
 AgentModule.init();
+UserKnowledge.init();
+UserSwitcher.init();
 registerRtcReplyDebugTools();
 initAgentLogViewer();
 console.log('所有模块初始化完成，事件总线已打通');
@@ -2035,7 +2344,7 @@ function initReadmeViewer() {
     async function loadReadme() {
         body.innerHTML = '<div class="readme-loading">加载中...</div>';
         try {
-            var endpoints = ['/api/readme', '/README.md'];
+            var endpoints = ['/api/readme', '/README.github.md', '/README.md'];
             var md = '';
             var lastError = null;
 

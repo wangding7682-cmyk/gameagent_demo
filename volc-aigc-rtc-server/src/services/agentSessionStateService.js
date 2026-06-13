@@ -3,6 +3,14 @@ import path from 'node:path';
 
 import { config } from '../config.js';
 
+/**
+ * 【会话状态 / 跨轮黑板】agentSessionStateService
+ *
+ * 通俗职责：把每轮对话的关键事和动态上下文写进一块"黑板"，
+ * 包括最近 N 轮 turn、屏幕白板、会话目标等，下一轮所有模块都从这里读。
+ * 落盘到 data/agent-session-state.json，进程崩了不丢状态。
+ */
+
 const stateFilePath = path.resolve(config.projectRoot, './data/agent-session-state.json');
 const MAX_TURNS = 10;
 

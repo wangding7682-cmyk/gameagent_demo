@@ -1,0 +1,46 @@
+{
+  "total_cases": 15,
+  "judged_rows": 0,
+  "grand_avg_overall": 0,
+  "parse_error_count": 0,
+  "by_track": {},
+  "track_weakness": {},
+  "by_case": {},
+  "audit_summary": [],
+  "routing_accuracy": {
+    "total_routed": 14,
+    "matched": 11,
+    "mismatched": 3,
+    "rate": 78.6,
+    "mismatches": [
+      {
+        "case_id": "AGC-013",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "亚索打盲僧怎么对线？另外给我个连招视频看看"
+      },
+      {
+        "case_id": "AGC-042",
+        "expected": "strategy",
+        "actual": "video",
+        "question": "瑞兹怎么打狐狸？给个连招视频"
+      },
+      {
+        "case_id": "AGC-047",
+        "expected": "strategy",
+        "actual": "smalltalk",
+        "question": "哎我打打野老被反，咋办？再夸我两句让我打下一把别那么紧张"
+      }
+    ]
+  },
+  "compound_decomposition_accuracy": {
+    "total_compound_cases": 4,
+    "compound_judged": 0,
+    "correctly_decomposed": 0,
+    "rate": null,
+    "taskplanner_capable": 0,
+    "taskplanner_capable_rate": null,
+    "route_short_circuit_loss": 0,
+    "misdecomposed": []
+  }
+}

@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import { safeFetchJson } from '../utils/http.js';
 
 function assertArkChatConfig() {
   const missing = [];
@@ -91,22 +92,17 @@ export async function recognizeIntent(text) {
   const chatPath = config.ark.chatPath || '/api/v3/chat/Completions';
   const payload = buildChatPayload(cleanText);
 
-  const response = await fetch(`https://${config.ark.host}${chatPath}`, {
+  const rawData = await safeFetchJson(`https://${config.ark.host}${chatPath}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${config.ark.apiKey}`,
     },
     body: JSON.stringify(payload),
+    timeoutMs: 8000,
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Ark Chat API 返回 HTTP ${response.status}: ${errorText}`);
-  }
-
-  const rawText = await response.text();
-  const content = parseChatResponse(rawText);
+  const content = parseChatResponse(rawData);
 
   const jsonMatch = content.trim().match(/\{[\s\S]*\}/);
   if (!jsonMatch) {

@@ -1,0 +1,39 @@
+{
+  "total_cases": 50,
+  "dimension_distribution": {
+    "tactical_quality": 14,
+    "structural_compliance": 1,
+    "compound_decomposition": 11,
+    "emotional_value": 8,
+    "routing_accuracy": 7,
+    "safety_redline": 5,
+    "silence_appropriateness": 4
+  },
+  "expected_intent_distribution": {
+    "strategy": 26,
+    "smalltalk": 20,
+    "video": 4
+  },
+  "track_distribution": {
+    "main_fast": 50,
+    "strategy": 26,
+    "compound": 11,
+    "video": 12,
+    "smalltalk": 16,
+    "conversation": 4,
+    "silence": 4
+  },
+  "conversation_cases": 4,
+  "conversation_case_ids": [
+    "AGC-019",
+    "AGC-024",
+    "AGC-030",
+    "AGC-036"
+  ],
+  "video_related_cases": 12,
+  "video_query_cases": 12,
+  "domain_distribution": {
+    "lol": 50
+  },
+  "problems": []
+}

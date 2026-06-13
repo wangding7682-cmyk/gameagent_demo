@@ -5,6 +5,36 @@ import { config } from '../config.js';
 
 const MAX_TTS_CHUNK_LEN = 200;
 
+// Room-level queue to prevent overlapping TTS pushes
+const roomQueues = new Map();
+
+async function acquireRoomLock(roomId, taskFn) {
+  if (!roomQueues.has(roomId)) {
+    roomQueues.set(roomId, Promise.resolve());
+  }
+  
+  const currentQueue = roomQueues.get(roomId);
+  
+  const nextQueue = currentQueue.then(async () => {
+    try {
+      await taskFn();
+    } catch (e) {
+      console.error(`[RtcPushTts] Error executing queued task for room ${roomId}:`, e);
+    }
+  }).catch(() => {}); // Catch previous errors so the queue continues
+  
+  roomQueues.set(roomId, nextQueue);
+  
+  // Clean up if this is the last item
+  nextQueue.finally(() => {
+    if (roomQueues.get(roomId) === nextQueue) {
+      roomQueues.delete(roomId);
+    }
+  });
+  
+  return nextQueue;
+}
+
 export async function handleRtcPushTts(body = {}) {
   const taskId = body.taskId || body.task_id;
   const roomId = body.roomId || body.room_id;
@@ -55,41 +85,45 @@ export async function handleRtcPushTts(body = {}) {
   }
 
   const chunks = splitTtsMessage(rawMessage, MAX_TTS_CHUNK_LEN);
-  console.log(`[RtcPushTts] pushing TTS to RTC | taskId=${resolvedTaskId} roomId=${resolvedRoomId} command=${command} interruptMode=${interruptMode} chunks=${chunks.length} totalLen=${rawMessage.length}`);
+  console.log(`[RtcPushTts] queuing TTS for RTC | taskId=${resolvedTaskId} roomId=${resolvedRoomId} command=${command} interruptMode=${interruptMode} chunks=${chunks.length} totalLen=${rawMessage.length}`);
 
   let successCount = 0;
-  for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i];
-    const isFirstChunk = i === 0;
-    const isLastChunk = i === chunks.length - 1;
+  
+  await acquireRoomLock(resolvedRoomId, async () => {
+    console.log(`[RtcPushTts] starting queued TTS push | taskId=${resolvedTaskId}`);
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const isFirstChunk = i === 0;
+      const isLastChunk = i === chunks.length - 1;
 
-    const payload = {
-      AppId: appId,
-      RoomId: resolvedRoomId,
-      TaskId: resolvedTaskId,
-      Command: command,
-      Message: chunk,
-      InterruptMode: isFirstChunk ? interruptMode : 2,
-    };
+      const payload = {
+        AppId: appId,
+        RoomId: resolvedRoomId,
+        TaskId: resolvedTaskId,
+        Command: command,
+        Message: chunk,
+        InterruptMode: isFirstChunk ? interruptMode : 2,
+      };
 
-    if (body.imageConfig && isFirstChunk) {
-      payload.ImageConfig = body.imageConfig;
-    }
-    if (body.parameters) {
-      payload.Parameters = body.parameters;
-    }
-
-    try {
-      const result = await callRtcOpenApi('UpdateVoiceChat', payload);
-      successCount++;
-      console.log(`[RtcPushTts] chunk ${i + 1}/${chunks.length} OK | "${chunk.slice(0, 60)}${chunk.length > 60 ? '...' : ''}"`);
-      if (!isLastChunk && chunks.length > 1) {
-        await new Promise((r) => setTimeout(r, 500));
+      if (body.imageConfig && isFirstChunk) {
+        payload.ImageConfig = body.imageConfig;
       }
-    } catch (error) {
-      console.error(`[RtcPushTts] chunk ${i + 1}/${chunks.length} FAILED |`, error.message);
+      if (body.parameters) {
+        payload.Parameters = body.parameters;
+      }
+
+      try {
+        const result = await callRtcOpenApi('UpdateVoiceChat', payload);
+        successCount++;
+        console.log(`[RtcPushTts] chunk ${i + 1}/${chunks.length} OK | "${chunk.slice(0, 60)}${chunk.length > 60 ? '...' : ''}"`);
+        if (!isLastChunk && chunks.length > 1) {
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      } catch (error) {
+        console.error(`[RtcPushTts] chunk ${i + 1}/${chunks.length} FAILED |`, error.message);
+      }
     }
-  }
+  });
 
   const allOk = successCount === chunks.length;
   if (allOk) {

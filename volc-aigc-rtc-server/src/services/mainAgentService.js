@@ -5,14 +5,28 @@ import { trimMainAgentOutput } from './outputTrimmerService.js';
 export function localRouteFallback(userQuery = '') {
   const text = String(userQuery || '').toLowerCase();
   const videoKeywords = ['视频', '看一下', '给我看', '给我找一个', '集锦', '高光', '操作秀', '操作集锦', '极限操作', '花式', '抖音', '精彩', '精彩视频', '精彩操作', '骚操作', '甩旋风', '回旋踢', '名场面', '神仙操作', '想看', '给我找'];
-  const strategyKeywords = ['怎么打', '打法', '怎么处理', '克制', '对线', '出装', '战术', '思路', '阵容', '入侵', '防守', '连招', '攻略', '大龙', '先锋', '兵线', '节奏', '资源交换'];
   if (videoKeywords.some((kw) => text.includes(kw))) {
     return 'video';
   }
-  if (strategyKeywords.some((kw) => text.includes(kw))) {
+  if (isExplicitStrategyAsk(text)) {
     return 'strategy';
   }
   return 'smalltalk';
+}
+
+// 收紧后的战术词：去掉「思路/节奏/卡片」等单字易误判项
+const STRATEGY_STRONG_KEYWORDS = ['怎么打', '打法', '怎么处理', '克制', '对线', '出装', '战术', '阵容', '入侵', '防守', '连招', '攻略', '资源交换', '兵线处理'];
+const STRATEGY_TOPIC_KEYWORDS = ['英雄', '中单', '上单', '打野', '辅助', '射手', 'adc', 'ad', '装备', '技能', '兵线', '大龙', '先锋', '小龙', '峡谷'];
+const STRATEGY_ACTION_KEYWORDS = ['怎么', '如何', '应该', '该不该', '推荐', '帮我', '给我', '教我', '建议'];
+const STRATEGY_CARD_KEYWORDS = ['知识卡片', '知识卡', '战术卡片', '战术卡', '图文', '配图', '生成图', '画一张', '出一张', '做成图', '做成卡'];
+
+function isExplicitStrategyAsk(text = '') {
+  const lower = String(text || '').toLowerCase();
+  if (STRATEGY_CARD_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))) return true;
+  if (STRATEGY_STRONG_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))) return true;
+  const hasTopic = STRATEGY_TOPIC_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()));
+  const hasAction = STRATEGY_ACTION_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()));
+  return hasTopic && hasAction;
 }
 
 function stripNoise(text = '') {
@@ -187,7 +201,7 @@ function hasExplicitVideoIntent(userQuery = '') {
 function hasExplicitStrategyIntent(userQuery = '') {
   const text = String(userQuery || '');
   if (hasExplicitVideoIntent(text)) return false;
-  return /怎么打|打法|怎么处理|克制|对线|出装|战术|思路|阵容|入侵|防守|连招|攻略|大龙|先锋|兵线|节奏|资源交换|知识卡片|知识卡|战术卡片|战术卡|卡片|图文|配图|生成图/.test(text);
+  return isExplicitStrategyAsk(text);
 }
 
 function normalizeMainOutput(parsed = {}, context = {}, forcedIntent = null) {
@@ -200,15 +214,14 @@ function normalizeMainOutput(parsed = {}, context = {}, forcedIntent = null) {
   }
 
   const text = String(userQuery || '').toLowerCase();
-  const hasKnowledgeCardRequest = text.includes('知识卡片') || text.includes('知识卡') || text.includes('战术卡片') || text.includes('战术卡') || text.includes('攻略');
-  const hasStrategyKeywords = ['怎么打', '打法', '怎么处理', '克制', '对线', '出装', '战术', '思路', '阵容', '入侵', '防守', '连招', '攻略'].some(kw => text.includes(kw));
-  if (intent === 'smalltalk' && (hasKnowledgeCardRequest || hasStrategyKeywords)) {
+  // 二级判定：当 LLM 输出 smalltalk 时，仅在用户「明确求助 + 战术主题」或「明确卡片需求」时才纠正为 strategy
+  if (intent === 'smalltalk' && isExplicitStrategyAsk(text)) {
     intent = 'strategy';
   }
   const videoQuerySeed = parsed.video_query_seed
     ? String(parsed.video_query_seed).slice(0, 120)
     : (intent === 'video' ? buildVideoSearchSeed(userQuery).slice(0, 120) : null);
-  const needsImage = intent === 'strategy' && shouldGenerateStrategyImage(userQuery);
+  const needsImage = intent === 'strategy' && (parsed.needs_image === true || shouldGenerateStrategyImage(userQuery));
   const strategyOutputMode = intent === 'strategy'
     ? (needsImage ? 'card_with_image' : 'text_only')
     : 'none';
@@ -378,14 +391,24 @@ export function buildLayeredSystemPrompt({ persona = {}, userProfile = {}, longT
 4. fsm_state 固定输出 MAIN_REPLIED。
 5. 严格只返回 JSON，不要输出 Markdown、解释文字或额外字段。
 6. 所有给用户看的字段都禁止包含括号内容、系统说明、工具调用提示、内部实现名称。
+7. 【silence 克制模式】当 user_prompt 中 proactive_check=true 时，表示玩家此刻没有发言，仅有屏幕画面信号触发"AI 该不该主动开口"评估：
+   - 默认输出沉默：intent="smalltalk"，emotional_reply ≤8 字（如"嗯。""我在看。""稳住。"），main_summary 留空字符串，understanding_reply 留空字符串，branch_wait_reply 留空字符串。
+   - 仅当画面里出现明确紧迫战术信号（low_hp_warning、ult_ready 且 last_hp_pct<0.3、ganked、objective_spawn 且自身在场、team_fight 已开）时，才允许 emotional_reply 8-12 字 + main_summary ≤30 字 简短预警，且只能基于画面事实，不得编造英雄/段位/连败等画面没给出的信息。
+   - 严禁复述 user_query 占位文本"(玩家未发言，仅有屏幕画面信号)"，严禁追问"需要我帮你..."。
+   - silence 模式下 strategy/video 路由全部失效，必须固定为 smalltalk。
 
 路由规则（优先级从高到低，高优先规则命中后不再进入下层）：
 
+【意图区分核心原则：轻量建议 vs 复杂策略】
+- 轻量建议（走 smalltalk）：针对具体的小情境追问、是非判断（如“那这波该打吗？”、“3级要去抓吗？”），不要求系统性长篇大论，仅需你在聊天流内给出 1-2 句口语化的简短回应。
+- 复杂策略（走 strategy）：针对系统性的知识查询（如“盲僧怎么打野”、“亚索怎么对线劫”、“出什么装备”），或用户明确要求“知识卡片”、“战术总结”时，后台子系统会生成长篇的文字报告或图文卡片。
+
 【第一优先：smalltalk 拦截层 — 以下模式必须选 smalltalk，即使问题中包含战术词汇】
-1. 观点确认/寻求验证类：问题包含"真的…吗""是不是""有没有效""好不好""值不值得""该不该""能不能""可不可以"等是非疑问词，且用户核心意图是寻求观点确认或情绪价值，而非索要具体操作步骤。例："只玩一个英雄上分真的比玩一堆英雄有效吗？""专精一个位置是不是更好？""这套出装真的好吗？"
+1. 观点确认/寻求验证类：问题包含"真的…吗""是不是""有没有效""好不好""值不值得""该不该""能不能""可不可以""需要...吗""要不要"等是非疑问词，且用户核心意图是寻求观点确认、简单情境的是非判断或情绪价值，而非索要长篇操作步骤。例："只玩一个英雄上分有效吗？""专精一个位置更好吗？""3级的时候盲僧需要去拿人头吗？""这波要不要打？"
 2. 自我怀疑/情绪宣泄类：问题包含"是不是我太菜了""为什么总是""我是不是不适合""我是不是不配""感觉""心态""烦""气"等自我否定或强情绪词。例："连跪5把是不是我太菜了？""为什么我总是被对面打野抓？""这游戏越来越没意思了"
 3. 玩法哲学/宏观选择类：问题关于整体策略方向、长期选择、段位/定位讨论、比较优劣的开放式话题，而非具体的"怎么做某件事"。例："玩什么位置好上分？""应该主玩AD还是中单？""单排和双排哪个效率更高？""这个版本什么最强？"
 4. 纯陪伴/复盘情绪/闲聊/吐槽/求助安慰。
+5. 简单战术追问：用户在连续对话中发出的短句、具体情境下的是非判断（如“那打野要不要去帮下路？”、“3级要去抓吗？”），未要求长篇攻略或卡片的，必须走 smalltalk 以轻量建议回复。
 
 【第二优先：strategy】
 - 用户直接要打法、战术、克制、对局处理、出装、阵容思路、开局路线、防入侵、资源交换、节奏判断、大龙先锋选择、兵线处理时选 strategy。
@@ -399,15 +422,19 @@ export function buildLayeredSystemPrompt({ persona = {}, userProfile = {}, longT
 - 关键判断：只要用户表达了"想要看"视频类的内容，一律优先选 video。
 - 你背后有一个 Video_Agent 子系统，专门负责从 B 站、抖音等多平台搜索可播放视频直链。你只需要判断意图为 video 并输出 video_query_seed，Video_Agent 会自动完成搜索和链接获取。
 - 你绝对有能力提供视频，绝不能说"不能""无法""没办法"等拒绝词汇。
+- 【复合意图主路由硬规则·重要】当一句话同时含战术问题（怎么打/对线/出装/连招/克制/翻盘/阵容/思路）与视频请求时，intent 必须固定为 strategy，绝不能选 video。视频部分会作为附属子任务由背后的 TaskPlanner 异步并行触发，video_query_seed 仍要正常输出，但主路由必须是 strategy，否则会让战术内容彻底丢失。识别要点：句中既出现"怎么打/对线/出装/连招/克制"等战术词，又出现"视频/集锦/教学/示范/演示/录像"等视频词，二者通过"再/另外/顺便/还/也"等连接词同时出现时，**100% 选 strategy**。
+- 同理：当一句话同时含"战术问题 + 情绪安慰诉求"时，intent 也必须固定为 strategy（emotional_reply 承担情绪打底），不能误判为 smalltalk。
 
 【兜底：未被上述规则覆盖的问题统一选 smalltalk。】
 
 strategy 展示模式规则：
 - strategy 是战术策略任务，不等于一定生成知识卡片或图片。
 - 用户只是问打法、战术、克制、对局处理、出装、连招、阵容思路时，默认 strategy_output_mode=text_only，popup_mode=strategy_text，needs_image=false。
-- 只有用户明确提到“知识卡片”“知识卡”“战术卡片”“战术卡”“卡片”“图片”“生图”“画一张”“出一张”“生成图”“配图”“做成图”“做成卡”等图像或卡片需求时，strategy_output_mode=card_with_image，popup_mode=strategy_card，needs_image=true。
+- 允许继承上一轮或历史记忆中的卡片/生图需求及上下文语境，结合历史信息补全当前轮的省略信息，使得 strategy_query 和 image_query 更加准确。
+- 如果结合上下文判定用户仍在继续上一轮的战术卡片话题，可以保持 needs_image=true，并输出 strategy_output_mode=card_with_image。
 - needs_image=false 时 image_query 必须为 null。
 - needs_image=true 时 image_query 输出适合图片生成的中文描述。
+- 注意：如果当前轮判定为 smalltalk（例如简单的战术追问或情绪表达），则不应生成卡片，且话术中不要主动承诺“弹出卡片”。
 
 video 话术规则：
 - video 意图时，系统具备从 B 站、抖音等多平台搜索并提供可播放直链的能力，用户应该得到肯定的回复。
@@ -502,14 +529,20 @@ export function buildMainUserPrompt(context = {}) {
   const profile = context.userProfile || {};
   const game = profile.game_profile || {};
   const comm = profile.communication_preferences || {};
+  const layeredItems = Array.isArray(context.layeredMemory?.items) ? context.layeredMemory.items.slice(0, 4) : [];
+  const layeredSummary = layeredItems.length > 0
+    ? layeredItems.map((it) => `[${it.layer}|score=${(it.final_score || 0).toFixed(2)}] ${it.content}`).join('\n')
+    : '暂无分层记忆命中';
   return JSON.stringify({
     task_id: context.taskId || '',
     user_id: context.userId || profile.user_id || 'default',
     user_query: context.userQuery,
     source: context.source,
+    proactive_check: context.proactiveCheck === true,
     rag_summary: context.rag?.summary || '暂无知识库结果',
     short_memory: context.shortMemory?.summary || '暂无短期记忆',
     long_term_memory: summarizeLongTermMemory(context.longTermMemory),
+    layered_memory: layeredSummary,
     dynamic_context: context.dynamicSummary || '暂无图文/视频帧上下文',
     user_profile: {
       rank_tier: game.rank_tier || '未知',
@@ -599,12 +632,14 @@ export async function runMainAgent(context) {
     const llmParsed = extractJsonObject(result.content);
     const llmIntent = llmParsed.intent;
     const fallbackIntent = localRouteFallback(context.userQuery);
-    const safeIntent = ['smalltalk', 'strategy', 'video'].includes(llmIntent) ? llmIntent : fallbackIntent;
+    const llmIntentValid = ['smalltalk', 'strategy', 'video'].includes(llmIntent);
+    const safeIntent = llmIntentValid ? llmIntent : fallbackIntent;
     let finalIntent = safeIntent;
-    if (safeIntent === 'strategy' && fallbackIntent === 'video') {
+    // 仅在 LLM 返回无效值（降级到 fallback）时才考虑 override；LLM 有效返回时尊重其判断
+    if (!llmIntentValid && safeIntent === 'strategy' && fallbackIntent === 'video') {
       finalIntent = 'video';
     }
-    if (safeIntent === 'smalltalk' && (fallbackIntent === 'video' || fallbackIntent === 'strategy')) {
+    if (!llmIntentValid && safeIntent === 'smalltalk' && (fallbackIntent === 'video' || fallbackIntent === 'strategy')) {
       finalIntent = fallbackIntent;
     }
     return {

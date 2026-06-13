@@ -1,9 +1,19 @@
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
+import { Agent, setGlobalDispatcher } from 'undici';
+
+// 配置全局 HTTP 代理，提升连接复用率，避免并发时 Socket 耗尽导致请求挂起
+// 这个设置对整个 Node.js 进程的所有原生 fetch 生效
+setGlobalDispatcher(new Agent({
+  keepAliveTimeout: 30000,
+  keepAliveMaxTimeout: 60000,
+  connections: 200, // 允许更大的并发连接数
+  pipelining: 1
+}));
 
 import { config, getMemoryConfigSummary } from './config.js';
-import { searchMockKnowledge } from './services/mockKnowledgeService.js';
+import { searchDefaultLocalKnowledge } from './services/defaultLocalKnowledgeService.js';
 import { generateArkImage } from './services/arkImageService.js';
 import { recognizeIntent } from './services/intentService.js';
 import { resolveDouyinVideo, searchDouyinVideo } from './services/douyinVideoSearchService.js';
@@ -50,6 +60,10 @@ import {
 import {
   loadLongTermMemory,
   loadUserProfile,
+  listUserProfiles,
+  createUserProfile,
+  getOverlayStatus,
+  resetUserOverlay,
 } from './services/agentProfileLoaderService.js';
 import {
   formatRtcPersonaProfileForPrompt,
@@ -57,17 +71,26 @@ import {
   updateRtcPersonaProfile,
 } from './services/rtcPersonaProfileService.js';
 import {
+  buildRtcProjection,
+  buildRtcProjectionMessage,
+} from './services/rtcProjectionService.js';
+import {
   appendRtcSessionMessage,
   getRecentRtcUserPrompts,
   getRtcSessionState,
   upsertRtcSessionState,
 } from './services/rtcSessionStateService.js';
 import { searchVolcKnowledge } from './services/volcKnowledgeApi.js';
+import { multiSourceSearch } from './services/multiSourceKnowledgeService.js';
+import { predictDocumentDomain } from './services/predictDomainService.js';
+import { callArkEmbedding } from './services/embeddingService.js';
 import { callRtcOpenApi } from './services/volcRtcOpenApi.js';
 import { generateRtcToken } from './services/tokenService.js';
 import { appendAgentTrace, getAgentTrace, listAgentTraces } from './services/agentTraceLoggerService.js';
-import { clearAgentSessionState, getAgentSessionState, upsertAgentDynamicContext } from './services/agentSessionStateService.js';
+import { listReflectionLogs, summarizeReflectionLogs } from './services/reflectionLoggerService.js';
+import { appendAgentSessionTurn, clearAgentSessionState, getAgentSessionState, upsertAgentDynamicContext } from './services/agentSessionStateService.js';
 import { runAgentOrchestration } from './services/agentOrchestratorService.js';
+import { planTasks as planTasksDirect } from './services/taskPlannerService.js';
 import { handleRtcLlmStream } from './services/rtcLlmStreamService.js';
 import { handleRtcPushTts } from './services/rtcPushTtsService.js';
 import {
@@ -473,9 +496,11 @@ function resolveRetrievedKnowledge(body, session = null) {
   return String(candidate || '').trim();
 }
 
-function buildRtcDynamicContextMessage({ profilePrompt, retrievedKnowledge, dynamicGameState }) {
+function buildRtcDynamicContextMessage({ profilePrompt, retrievedKnowledge, dynamicGameState, rtcProjectionMessage = '' }) {
   return [
     '# Dynamic Context (由系统状态机动态注入)',
+    rtcProjectionMessage || '',
+    '',
     '<memory_profile>',
     profilePrompt || '暂无长期画像',
     '</memory_profile>',
@@ -608,6 +633,7 @@ async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig, tu
   const nextLlmConfig = cloneJson(nextConfig.LLMConfig) || {};
   const playerUserId = resolvePlayerUserId(body, agentConfig);
   const currentSession = String(body.taskId || '').trim() ? getRtcSessionState(body.taskId) : null;
+  const agentSessionState = getAgentSessionState(body.sessionId || body.session_id || playerUserId || 'default');
   const dynamicGameState = resolveDynamicGameState(body);
   const retrievedKnowledge = resolveRetrievedKnowledge(body, currentSession);
   const profile = getRtcPersonaProfile(playerUserId);
@@ -656,6 +682,13 @@ async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig, tu
     userProfile?.game_profile?.frequent_champions?.length ? `常玩英雄: ${userProfile.game_profile.frequent_champions.join('/')}` : '',
     userProfile?.game_profile?.play_style ? `风格: ${userProfile.game_profile.play_style}` : '',
   ].filter(Boolean).join('\n') || '暂无长期画像';
+  const rtcProjection = buildRtcProjection({
+    body,
+    agentSessionState,
+    retrievedKnowledge,
+    dynamicGameState,
+  });
+  const rtcProjectionMessage = buildRtcProjectionMessage(rtcProjection);
   const historyLength = 0;
   const shortPromptMessageLimit = 0;
 
@@ -666,9 +699,19 @@ async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig, tu
     '核心目标：',
     '1. 用极短时间输出可播回复，避免用户等待完整后台 Agent。',
     '2. 判断用户意图并自然路由：',
-    '   - smalltalk：聊天/情绪/观点/心态/玩法哲学 → 直接给轻量观点或安慰，1-2句',
-    '   - strategy：打法/战术/出装/克制/对线/知识卡片 → 简短确认 + 等候语，后台会出卡片',
-    '   - video：找视频/集锦/高光/抖音/B站 → 简短确认 + 等候语，后台会弹视频',
+    '   - smalltalk：聊天/情绪/观点/心态/玩法哲学/对队友/对自身/无明确战术索取 → 直接给轻量观点或安慰，1-2句',
+    '   - strategy：打法/战术/出装/克制/对线/明确要"知识卡片/战术卡片"等卡片词 → 简短确认 + 等候语',
+    '   - video：找视频/集锦/高光/抖音/B站/明确要看视频 → 简短确认 + 等候语',
+    '',
+    '【关键反空头支票规则 — 最高优先级】',
+    '- 你的话直接被 TTS 播给用户，但你并不能保证后端 Strategy_Agent / Video_Agent 真的会被触发。',
+    '- 因此，**只有当用户的请求显式包含战术词或卡片词或视频词时，才允许说"整理后弹出"或"找到后弹出"这类动作承诺**。',
+    '  - 战术词示例：怎么打、克制、出装、连招、对线、入侵、阵容、战术、节奏',
+    '  - 卡片词示例：知识卡片、知识卡、战术卡片、战术卡、卡片、生成图、画一张、配图',
+    '  - 视频词示例：视频、集锦、高光、抖音、B站、操作演示',
+    '- 如果用户只是闲聊、问情绪、问感受、问队友是谁、问"刚才发生了什么"、说自己的事，**严禁承诺生成卡片/查找视频/整理战术**，只能用闲聊语气直接给一个简短回应或反问。',
+    '- 含糊的话术（如"我去帮你看看"、"我帮你整理下"）也不能用在闲聊上，因为后台不会真的做。',
+    '- 严禁编造游戏内事件、英雄、对位、操作等用户没说过的具体事实（"对面打野是XXX""你被XXX绕后"）。',
     '',
     '语气约束：',
     '- 助手名称：小G',
@@ -679,13 +722,40 @@ async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig, tu
     '- 信息不足时先给保守且可执行的建议',
     '- 不要编造版本结论、英雄机制、敌我位置或画面内容',
     '',
+    '轻思考感播报规则：',
+    '- 你的回复必须带一点“判断感”，不要只做机械确认。',
+    '- 优先采用“先判断，再给半句依据，最后说下一步”的口语节奏。',
+    '- 第一短句优先给当前判断，例如“这波先稳刷到6。”“这个视频先看控龙节奏。”“这把先别急着接团。”',
+    '- 第二短句只补一个最关键的依据，优先引用 <current_game_state>、RTC Context Projection 里的 unresolved_need / latest_rag_brief / session_topic。',
+    '- 第三短句才允许说下一步动作；如果是 strategy/video，可说“我继续帮你整理/筛视频，稍后弹出”。',
+    '- 禁止空起手：不要用“收到”“好的”“好嘞”“明白”“哈哈”“这就为你”“安排上了”作为第一句。',
+    '- 禁止把卡片正文、列表条目、完整攻略直接念出来；RTC 只负责短判断，不负责朗读完整资产内容。',
+    '- 小句里允许有教练感，但不要居高临下，不要夸张，不要卖萌。',
+    '',
+    '连续追问规则：',
+    '- 如果用户说“那个呢”“那这个呢”“还是围绕...”“刚才那个视频呢”“继续说这个”，优先视为延续当前话题，而不是新开闲聊。',
+    '- 遇到代词追问时，先参考 RTC Context Projection 中的 sticky_hero、session_topic、unresolved_need，再决定回复内容。',
+    '- 只有用户明确换英雄、换主题、换需求时，才允许跳出当前话题。',
+    '- 连续追问场景下，第一句必须直接给“方向判断”或“局势判断”，例如“先盯控龙时机。”“这波先接龙。”不要先说“明白，就...”这类执行确认。',
+    '- 视频追问场景下，如果 projection 已经显示具体英雄/主题，回复里要带上该主题，例如“我继续按龙女打野教学这个方向筛”。不要泛泛说“我去找视频”。',
+    '- strategy 追问场景下，如果用户是在追问上个战术点，优先延续上个判断，不要先退回泛化安抚。',
+    '',
+    '任务参与度规则：',
+    '- 如果 RTC Context Projection 里的 task_engagement_state 是 paused 或 cancelled，说明用户刚把原任务收住了；这一轮只能确认暂停/取消，不要继续推进旧任务。',
+    '- 如果 task_engagement_state 是 light_chat，说明用户还在和你说话，但当前不在推进原任务；只做轻互动，不要自动恢复旧任务，更不要继续说“我继续筛视频/继续整理”。',
+    '- 如果 projection 里有 resumable_branch_hint，只有用户当前这句话明确表达“继续刚才那个/还是看那个/继续说这个”时，才允许恢复该任务。',
+    '- 用户说“不要”“不用”“没必要”“自己可以”时，优先理解为收束当前任务，而不是继续围绕旧任务展开。',
+    '- 用户说“哈哈”“没错”“挺好”“好的”这类反馈时，优先按轻互动处理；除非用户同句里明确提到继续当前任务，否则不要自动接回旧主线。',
+    '',
     '输出规则：',
     '- 直接输出可播文本，不要输出JSON、标记、括号内容',
     '- 禁止工具调用描述、系统说明、内部Agent名称',
-    '- strategy/video时自然带出等候语（如"我帮你整理下"、"我去找找"）',
-    '- 禁止承诺后台任务已完成，只能说"整理后弹出/找到后弹出"',
+    '- 严禁输出 <think> 标签或任何思考过程，直接给最终结论',
     '- 不要展开完整攻略，那是后台的事',
     '- 只把真正需要播报给用户的内容放在回复里',
+    '- smalltalk：直接给“判断 + 建议”，不要空附和。',
+    '- strategy：给“判断 + 一句依据 + 等待动作”，但不要把完整攻略念出来。',
+    '- video：给“判断 + 视频方向/筛选依据 + 等待动作”，但不要假装视频已经拿到，除非系统明确告知已找到。',
     '',
     '上下文优先级：',
     '1. <current_game_state>',
@@ -698,10 +768,18 @@ async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig, tu
     '- 当用户明确表达长期偏好、习惯、禁忌时，在回复中自然确认，例如"记住了，以后我直接讲抓人时机"',
     '- 不要说"我已将此写入记忆"之类的系统术语，用自然对话确认即可',
     '- 系统会自动将高价值信息沉淀为长期记忆，你不需要做额外操作',
+    '',
+    '回复示例风格（只学语气，不要照抄内容）：',
+    '- strategy 例：这把先稳刷到6。龙女前两波更看等级和河道资源，我先把前期节奏整理给你。',
+    '- strategy follow-up 例：这波控龙要看线权。你要是还围绕龙女打野，我就按控龙时机继续帮你补重点。',
+    '- video 例：这个视频先看教学向。你现在更缺控龙和开野节奏，我继续按龙女打野教学这个方向筛，找到就弹。',
+    '- video follow-up 例：刚才那个视频我还在按龙女打野教学筛。优先给你找能直接看控龙时机和刷野路线的。',
+    '- video focus follow-up 例：先盯控龙时机。你现在有河道视野和线权，我优先找对应场景的教学片段。',
+    '- smalltalk 例：这波先别急着自责。你现在更需要把关键失误点拎出来，我先陪你捋顺。',
   ].join('\n');
 
   nextLlmConfig.SystemMessages = [
-    buildRtcDynamicContextMessage({ profilePrompt, retrievedKnowledge, dynamicGameState }),
+    buildRtcDynamicContextMessage({ profilePrompt, retrievedKnowledge, dynamicGameState, rtcProjectionMessage }),
     interactionAgentPrompt,
   ];
   nextLlmConfig.HistoryLength = 10;
@@ -717,6 +795,7 @@ async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig, tu
     playerUserId,
     dynamicGameState,
     retrievedKnowledge,
+    rtcProjection,
     historyLength,
     shortPromptMessageLimit,
     profile,
@@ -803,6 +882,7 @@ async function buildStartVoiceChatRequest(body) {
       historyLength: memoryContext.historyLength,
       shortPromptMessageLimit: memoryContext.shortPromptMessageLimit,
       profile: memoryContext.profile,
+      rtcProjection: memoryContext.rtcProjection,
       agentUserId: agentConfig.UserId,
     },
   };
@@ -886,9 +966,9 @@ async function handleKnowledgeSearch(body) {
 
   if (provider !== 'volc') {
     return {
-      provider: 'mock',
+      provider: 'default_local',
       fallback: false,
-      result: searchMockKnowledge(body.query, Number(body.limit || config.knowledge.limit || 5)),
+      result: searchDefaultLocalKnowledge(body.query, Number(body.limit || config.knowledge.limit || 5)),
     };
   }
 
@@ -904,10 +984,10 @@ async function handleKnowledgeSearch(body) {
     }
 
     return {
-      provider: 'mock',
+      provider: 'default_local',
       fallback: true,
       fallbackReason: error.message,
-      result: searchMockKnowledge(body.query, Number(body.limit || config.knowledge.limit || 5)),
+      result: searchDefaultLocalKnowledge(body.query, Number(body.limit || config.knowledge.limit || 5)),
     };
   }
 }
@@ -1616,8 +1696,15 @@ async function handleRequest(request, response) {
   }
 
   if (request.method === 'GET' && url.pathname === '/api/readme') {
-    const readmePath = path.resolve(frontendRoot, 'README.md');
+    const readmeCandidates = [
+      path.resolve(frontendRoot, 'README.github.md'),
+      path.resolve(frontendRoot, 'README.md'),
+    ];
     try {
+      const readmePath = readmeCandidates.find((candidate) => fs.existsSync(candidate));
+      if (!readmePath) {
+        throw new Error('README_NOT_FOUND');
+      }
       const content = fs.readFileSync(readmePath, 'utf8');
       response.writeHead(200, {
         'Content-Type': 'text/markdown; charset=utf-8',
@@ -1628,7 +1715,7 @@ async function handleRequest(request, response) {
       sendJson(response, 404, {
         ok: false,
         message: 'README 不存在',
-        path: readmePath,
+        path: readmeCandidates[0],
       });
     }
     return;
@@ -1639,6 +1726,56 @@ async function handleRequest(request, response) {
       ok: true,
       data: listSessionRecords(url.searchParams.get('limit')),
     });
+    return;
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/data/users/list') {
+    try {
+      const list = listUserProfiles();
+      sendJson(response, 200, { ok: true, data: { list } });
+    } catch (error) {
+      sendJson(response, 500, { ok: false, message: error?.message || '用户列表加载失败' });
+    }
+    return;
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/data/users/create') {
+    try {
+      const body = await readJsonBody(request);
+      const profile = createUserProfile({
+        userId: String(body?.userId || body?.user_id || '').trim(),
+        displayName: String(body?.displayName || body?.display_name || '').trim(),
+      });
+      sendJson(response, 200, { ok: true, data: profile });
+    } catch (error) {
+      sendJson(response, 400, { ok: false, message: error?.message || '创建用户失败' });
+    }
+    return;
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/data/users/overlay-status') {
+    const userId = String(url.searchParams.get('userId') || '').trim();
+    if (!userId) {
+      sendJson(response, 400, { ok: false, message: 'userId 必填' });
+      return;
+    }
+    sendJson(response, 200, { ok: true, data: getOverlayStatus(userId) });
+    return;
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/data/users/reset-overlay') {
+    try {
+      const body = await readJsonBody(request);
+      const userId = String(body?.userId || body?.user_id || '').trim();
+      if (!userId) {
+        sendJson(response, 400, { ok: false, message: 'userId 必填' });
+        return;
+      }
+      resetUserOverlay(userId);
+      sendJson(response, 200, { ok: true, data: getOverlayStatus(userId) });
+    } catch (error) {
+      sendJson(response, 400, { ok: false, message: error?.message || '重置失败' });
+    }
     return;
   }
 
@@ -1801,6 +1938,40 @@ async function handleRequest(request, response) {
     return;
   }
 
+  if (request.method === 'GET' && url.pathname === '/api/agent/reflections/list') {
+    try {
+      const params = Object.fromEntries(url.searchParams.entries());
+      // 兼容前端用 userId 查询：项目内 sessionId 通常 = userId
+      const sessionId = params.sessionId || params.session_id || params.userId || params.user_id || '';
+      const keyword = String(params.keyword || params.q || '').trim().toLowerCase();
+      const intent = String(params.intent || '').trim();
+      const limit = Math.max(1, Math.min(200, Number(params.limit || 50) || 50));
+      const offset = Math.max(0, Number(params.offset || 0) || 0);
+
+      // 先按 sessionId / intent 过滤再做关键词二次过滤
+      const raw = listReflectionLogs({ sessionId: sessionId === 'all' ? '' : sessionId, intent, limit: 500, offset: 0 });
+      let rows = raw.list;
+      if (keyword) {
+        rows = rows.filter((r) => {
+          const hay = [
+            r.user_query, r.main_summary, r.intent,
+            r.reflection?.this_turn?.improvements,
+            r.reflection?.memory_promotion?.content,
+            r.reflection?.proactive?.bridge_question,
+          ].filter(Boolean).join(' ').toLowerCase();
+          return hay.includes(keyword);
+        });
+      }
+      const total = rows.length;
+      const list = rows.slice(offset, offset + limit);
+      const summary = summarizeReflectionLogs({ intent });
+      sendJson(response, 200, { ok: true, data: { total, limit, offset, list, summary, sessionId } });
+    } catch (error) {
+      sendJson(response, 500, { ok: false, message: error?.message || 'reflection 列表加载失败' });
+    }
+    return;
+  }
+
   if (request.method === 'GET' && url.pathname.startsWith('/api/agent/session/')) {
     const sessionId = decodeURIComponent(url.pathname.replace('/api/agent/session/', '').replace(/\/state$/, ''));
     sendJson(response, 200, {
@@ -1819,6 +1990,8 @@ async function handleRequest(request, response) {
 
   if (url.pathname === '/api/agent/orchestrate/trigger') {
     const sessionId = body.sessionId || body.session_id || 'default';
+    // source 兜底：调用方未传时显式打成 orchestrate_trigger，避免 trace 显示 'unknown'
+    if (!body.source) body.source = 'orchestrate_trigger';
     runAgentOrchestration(body, (event, data) => {
       appendSessionEvent(sessionId, { event, data });
       publishToEventBus(sessionId, event, data);
@@ -1879,7 +2052,10 @@ async function handleRequest(request, response) {
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no',
     });
-    await runAgentOrchestration(body, (event, data) => writeSseEvent(response, event, data));
+    await runAgentOrchestration(
+      Object.assign({}, body, { source: body.source || 'orchestrate_stream' }),
+      (event, data) => writeSseEvent(response, event, data),
+    );
     response.end();
     return;
   }
@@ -1898,9 +2074,12 @@ async function handleRequest(request, response) {
 
   if (url.pathname === '/api/agent/orchestrate/start') {
     const events = [];
-    const state = await runAgentOrchestration(body, (event, data) => {
-      events.push({ event, data });
-    });
+    const state = await runAgentOrchestration(
+      Object.assign({}, body, { source: body.source || 'orchestrate_start' }),
+      (event, data) => {
+        events.push({ event, data });
+      },
+    );
     sendJson(response, 200, {
       ok: state.status !== 'failed',
       data: {
@@ -1923,6 +2102,88 @@ async function handleRequest(request, response) {
       },
     });
     sendJson(response, 200, { ok: true, data: result });
+    return;
+  }
+
+  if (url.pathname === '/api/agent/screen/event') {
+    const sessionId = body.sessionId || body.session_id || 'default';
+    try {
+      const { processFrame } = await import('./services/screenEventService.js');
+      const out = processFrame({ rawFrame: body.frame || body, sessionId });
+      if (out.allowed && out.picked) {
+        // 屏幕观察走"静默感知"路径：只写审计日志，不向 SSE / TTS 播报。
+        // 主动播报由 Reflector 的 proactive_cue 通道统一负责。
+        const eventPayload = {
+          session_id: sessionId,
+          event_type: out.picked.type,
+          priority: out.picked.priority,
+          confidence: out.picked.confidence,
+          game: out.frame.game,
+          scene: out.frame.scene,
+          frame_id: out.frame.frame_id,
+          ts: out.frame.ts,
+        };
+        appendSessionEvent(sessionId, { event: 'screen_observation_logged', data: eventPayload });
+      }
+      sendJson(response, 200, {
+        ok: true,
+        data: {
+          frame_id: out.frame.frame_id,
+          picked: out.picked,
+          allowed: out.allowed,
+          allowed_reason: out.allowed_reason,
+          cooldown_left_ms: out.cooldown_left_ms,
+        },
+      });
+    } catch (err) {
+      sendJson(response, 500, { ok: false, message: err.message || 'screen event failed' });
+    }
+    return;
+  }
+
+  if (url.pathname === '/api/agent/screen/frame') {
+    const sessionId = body.sessionId || body.session_id || 'default';
+    try {
+      const { recognizeFrame } = await import('./services/visionFrameService.js');
+      const { processFrame } = await import('./services/screenEventService.js');
+      const recog = await recognizeFrame({
+        base64Image: body.base64Image || body.image || '',
+        mimeType: body.mimeType || 'image/jpeg',
+        frameId: body.frameId || `frame_${Date.now()}`,
+        mockHints: body.mockHints || null,
+      });
+      const out = processFrame({ rawFrame: recog.frame, sessionId });
+      if (out.allowed && out.picked) {
+        // 静默感知：仅审计入库，不广播到 SSE。
+        const eventPayload = {
+          session_id: sessionId,
+          event_type: out.picked.type,
+          priority: out.picked.priority,
+          confidence: out.picked.confidence,
+          game: out.frame.game,
+          scene: out.frame.scene,
+          frame_id: out.frame.frame_id,
+          ts: out.frame.ts,
+        };
+        appendSessionEvent(sessionId, { event: 'screen_observation_logged', data: eventPayload });
+      }
+      sendJson(response, 200, {
+        ok: true,
+        data: {
+          frame_id: out.frame.frame_id,
+          recognition: {
+            degraded: recog.degraded,
+            reason: recog.reason,
+            latency_ms: recog.latency_ms,
+          },
+          picked: out.picked,
+          allowed: out.allowed,
+          allowed_reason: out.allowed_reason,
+        },
+      });
+    } catch (err) {
+      sendJson(response, 500, { ok: false, message: err.message || 'frame recognition failed' });
+    }
     return;
   }
 
@@ -1990,6 +2251,103 @@ async function handleRequest(request, response) {
       fallbackReason: result.fallbackReason,
       data: sanitizeResponse(result.result),
     });
+    return;
+  }
+
+  if (url.pathname === '/api/data/knowledge/search-multi') {
+    const query = String(body.query || body.text || '').trim();
+    if (!query) {
+      sendJson(response, 400, { ok: false, error: 'query 不能为空' });
+      return;
+    }
+    const incomingSources = Array.isArray(body.sources) ? body.sources : [];
+    const sanitizedSources = incomingSources
+      .filter((s) => s && typeof s === 'object' && typeof s.type === 'string')
+      .map((s) => ({
+        type: s.type,
+        domain: s.domain || null,
+        label: s.label || '',
+        enabled: s.enabled !== false,
+        topK: Number(s.topK) > 0 ? Number(s.topK) : 5,
+        items: Array.isArray(s.items) ? s.items : undefined,
+        apiKey: s.apiKey || undefined,
+        serviceResourceId: s.serviceResourceId || undefined,
+      }))
+      .filter((s) => s.enabled);
+
+    const effectiveSources = sanitizedSources.length > 0 ? sanitizedSources : [
+      { type: 'default_local', domain: 'lol', label: '内置·英雄联盟示例库', enabled: true, topK: 5 },
+      { type: 'default_local', domain: 'wzry', label: '内置·王者荣耀示例库', enabled: true, topK: 5 },
+      { type: 'house_volc', label: '官方云端库', enabled: true, topK: 5 },
+    ];
+
+    try {
+      const multi = await multiSourceSearch({
+        query,
+        sources: effectiveSources,
+        topK: Number(body.topK || body.limit || config.knowledge.limit || 5),
+        rerankStrategy: body.rerankStrategy || body.rerank_strategy || 'embedding',
+      });
+      sendJson(response, 200, {
+        ok: true,
+        provider: 'multi_source',
+        data: {
+          query,
+          detectedDomains: multi.detectedDomains,
+          items: multi.items,
+          summary: multi.summary,
+          skipped: multi.skipped,
+          skippedSources: multi.skippedSources || [],
+          rerankSource: multi.rerankSource,
+          poolSize: multi.poolSize,
+          cacheHit: Boolean(multi.cacheHit),
+          sources: effectiveSources.map((s) => ({ type: s.type, domain: s.domain, label: s.label })),
+        },
+      });
+    } catch (error) {
+      sendJson(response, 500, {
+        ok: false,
+        error: error.message || '多源知识库检索失败',
+      });
+    }
+    return;
+  }
+
+  if (url.pathname === '/api/data/knowledge/predict-domain') {
+    const filename = String(body.filename || body.name || '').trim();
+    const text = String(body.text || body.snippet || body.content || '').trim();
+    if (!filename && !text) {
+      sendJson(response, 400, { ok: false, error: 'filename 与 text 至少提供一个' });
+      return;
+    }
+    try {
+      const result = await predictDocumentDomain({ filename, text });
+      sendJson(response, 200, { ok: true, data: result });
+    } catch (error) {
+      sendJson(response, 500, { ok: false, error: error.message || 'domain 预判失败' });
+    }
+    return;
+  }
+
+  if (url.pathname === '/api/data/knowledge/embedding') {
+    const inputs = Array.isArray(body.texts)
+      ? body.texts
+      : (body.text ? [body.text] : []);
+    const cleaned = inputs.map((t) => String(t || '')).filter((t) => t.trim());
+    if (cleaned.length === 0) {
+      sendJson(response, 400, { ok: false, error: 'texts 不能为空' });
+      return;
+    }
+    if (cleaned.length > 256) {
+      sendJson(response, 400, { ok: false, error: '单次最多 256 条' });
+      return;
+    }
+    try {
+      const { vectors, dim, model } = await callArkEmbedding({ texts: cleaned, model: body.model });
+      sendJson(response, 200, { ok: true, data: { vectors, dim, model, count: vectors.length } });
+    } catch (error) {
+      sendJson(response, 500, { ok: false, error: error.message || 'embedding 失败' });
+    }
     return;
   }
 
@@ -2237,6 +2595,8 @@ async function handleRequest(request, response) {
       historyLength: context.historyLength,
       metadata: {
         businessId: payload.BusinessId || '',
+        sessionId: body.sessionId || body.session_id || context.playerUserId || '',
+        rtcProjection: context.rtcProjection || {},
       },
     });
     const result = await callRtcOpenApi('StartVoiceChat', payload);
@@ -2250,6 +2610,7 @@ async function handleRequest(request, response) {
         historyLength: context.historyLength,
         shortPromptMessageLimit: context.shortPromptMessageLimit,
         profile: context.profile,
+        rtcProjection: context.rtcProjection || {},
         customLlmMode: context.customLlmMode === true,
       },
       data: sanitizeResponse(result),
@@ -2310,29 +2671,127 @@ async function handleRequest(request, response) {
   if (url.pathname === '/api/eval/generate') {
     const question = String(body.question || '').trim();
     const userId = String(body.user_id || body.userId || 'default').trim();
-    if (!question) {
+    // mode=proactive_check：评测 AI 在"无显式提问"场景下是否克制（silence 评测专用）
+    // 此模式允许 question 为空，由屏幕画面 / 上下文驱动 AI 判断"该不该说话"
+    // 内部用 sentinel 文本作为 query，避免下游 userQuery='' 引发的容错分支
+    const mode = String(body.mode || 'qa').trim();
+    const isProactiveCheck = mode === 'proactive_check';
+    if (!question && !isProactiveCheck) {
       sendJson(response, 400, { ok: false, message: '缺少 question 参数' });
       return;
     }
     try {
+      // 评测专用：允许 case 注入最近 1-2 轮历史，真实写入 session 黑板，
+      // 用于验证话题延续、代词恢复、脱轨控制等多轮上下文能力。
+      if (Array.isArray(body.prior_turns) && body.prior_turns.length) {
+        clearAgentSessionState(userId);
+        body.prior_turns.slice(-3).forEach((turn, index) => {
+          appendAgentSessionTurn(userId, {
+            turn_id: turn.turn_id || `${body.case_id || 'eval'}-prior-${index + 1}`,
+            user_query: String(turn.user_query || turn.question || '').trim(),
+            intent: String(turn.intent || 'unknown').trim(),
+            summary: String(turn.summary || turn.main_summary || '').trim(),
+            main_summary: String(turn.main_summary || turn.summary || '').trim(),
+            rag_summary: String(turn.rag_summary || '').trim(),
+            timestamp: turn.timestamp || new Date(Date.now() - (body.prior_turns.length - index) * 1000).toISOString(),
+          });
+        });
+      }
       const events = [];
+      const effectiveQuery = question || '(玩家未发言，仅有屏幕画面信号)';
       const state = await runAgentOrchestration(
         {
           ...body,
           userId,
           taskId: `eval-${Date.now()}`,
-          query: question,
+          query: effectiveQuery,
+          mode,
+          // proactive_check 标记，便于下游 mainAgentService 识别并采取克制策略
+          proactive_check: isProactiveCheck,
+          // source 兜底：silence 评测打成 eval_silence，常规问答打成 eval_qa；调用方显式传值优先
+          source: body.source || (isProactiveCheck ? 'eval_silence' : 'eval_qa'),
         },
         (event, data) => {
           events.push({ event, data });
         },
       );
       const mainOutput = state || {};
-      const visibleAnswer = [
+      const tacticData = mainOutput.tactic_data || null;
+      const videoData = mainOutput.video_data || null;
+      const videoQueries = mainOutput.video_queries || null;
+      const taskPlanEvent = events.find((e) => e.event === 'task_plan');
+      const taskPlan = taskPlanEvent?.data || null;
+      // 评测旁路：强制再跑一次 TaskPlanner，绕开 main_intent==='smalltalk' 的短路逻辑。
+      // 这样即便主脑把"情绪+战术"复合句误判为 smalltalk 导致主链路 task_plan 为空，
+      // compound 评测仍能拿到 LLM 拆解的真实结果，便于把"路由识别失败"和"拆解能力失败"两类问题分开归因。
+      let taskPlanForced = null;
+      if (mode !== 'proactive_check') {
+        try {
+          taskPlanForced = await planTasksDirect({
+            user_query: effectiveQuery,
+            // 强制按 strategy 触发拆解（绕开 smalltalk 短路）
+            main_intent: mainOutput.intent && mainOutput.intent !== 'smalltalk' ? mainOutput.intent : 'strategy',
+            main_reply: mainOutput,
+          });
+        } catch (forceErr) {
+          taskPlanForced = { task_plan: [], mode: 'single', reason: `forced_failed:${forceErr.message}` };
+        }
+      }
+      const tacticBlock = tacticData
+        ? [
+            tacticData.title ? `【战术标题】${tacticData.title}` : '',
+            Array.isArray(tacticData.details) && tacticData.details.length
+              ? `【要点】\n- ${tacticData.details.join('\n- ')}`
+              : '',
+            Array.isArray(tacticData.voice_chunks) && tacticData.voice_chunks.length
+              ? `【口播】${tacticData.voice_chunks.join(' ')}`
+              : '',
+          ].filter(Boolean).join('\n')
+        : '';
+      const videoBlock = videoData
+        ? [
+            videoData.title ? `【视频标题】${videoData.title}` : '',
+            videoData.summary ? `【视频摘要】${videoData.summary}` : '',
+            videoData.query ? `【搜索关键词】${videoData.query}` : '',
+            videoData.linkUrl ? `【链接】${videoData.linkUrl}` : '',
+          ].filter(Boolean).join('\n')
+        : '';
+      // 从 events 中提取并行子任务结果（compound 场景：secondary_strategy_ready / secondary_video_ready）
+      const secondaryStrategyEvents = events.filter((e) => e.event === 'secondary_strategy_ready');
+      const secondaryVideoEvents = events.filter((e) => e.event === 'secondary_video_ready');
+      const secondaryStrategyData = secondaryStrategyEvents.map((e) => e.data || {});
+      const secondaryVideoData = secondaryVideoEvents.map((e) => e.data || {});
+      const secondaryStrategyBlock = secondaryStrategyData
+        .map((d, i) => [
+          `【副战术#${i + 1}】query=${d.query || ''}`,
+          d.title ? `【副战术标题】${d.title}` : '',
+          Array.isArray(d.details) && d.details.length
+            ? `【副战术要点】\n- ${d.details.join('\n- ')}`
+            : '',
+        ].filter(Boolean).join('\n'))
+        .filter(Boolean)
+        .join('\n');
+      const secondaryVideoBlock = secondaryVideoData
+        .map((d, i) => [
+          `【副视频#${i + 1}】query=${d.query || ''}`,
+          d.title ? `【副视频标题】${d.title}` : '',
+          d.summary ? `【副视频摘要】${d.summary}` : '',
+          d.linkUrl ? `【副视频链接】${d.linkUrl}` : '',
+        ].filter(Boolean).join('\n'))
+        .filter(Boolean)
+        .join('\n');
+      const fastPathReply = [
         mainOutput.emotional_reply || '',
         mainOutput.understanding_reply || '',
         mainOutput.main_summary || '',
         mainOutput.branch_wait_reply || '',
+      ].filter(Boolean).join('\n');
+      const visibleAnswer = [
+        fastPathReply,
+        tacticBlock,
+        videoBlock,
+        secondaryStrategyBlock,
+        secondaryVideoBlock,
       ].filter(Boolean).join('\n');
       sendJson(response, 200, {
         ok: (mainOutput.status !== 'failed') && (Object.keys(mainOutput).length > 5),
@@ -2345,9 +2804,25 @@ async function handleRequest(request, response) {
             main_summary: mainOutput.main_summary,
             branch_wait_reply: mainOutput.branch_wait_reply,
             route_reason: mainOutput.route_reason,
+            tactic_data: tacticData,
+            video_data: videoData,
+            video_query: mainOutput.video_query || null,
+            video_queries: videoQueries,
+            task_plan: taskPlan,
+            task_plan_forced: taskPlanForced,
           },
           actual_intent: mainOutput.intent || null,
+          fast_path_reply: fastPathReply,
           visible_answer: visibleAnswer,
+          tactic_data: tacticData,
+          video_data: videoData,
+          // compound 场景：TaskPlanner 拆出的并行子任务实际执行结果
+          secondary_strategy_data: secondaryStrategyData,
+          secondary_video_data: secondaryVideoData,
+          video_query: mainOutput.video_query || null,
+          video_queries: videoQueries,
+          task_plan: taskPlan,
+          task_plan_forced: taskPlanForced,
           raw_state: mainOutput,
           events,
         },

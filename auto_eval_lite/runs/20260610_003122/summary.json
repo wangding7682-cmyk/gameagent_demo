@@ -1,0 +1,263 @@
+{
+  "total_cases": 15,
+  "judged_rows": 14,
+  "grand_avg_overall": 9.05,
+  "parse_error_count": 0,
+  "by_track": {
+    "main_fast": {
+      "total": 10,
+      "pass": 9,
+      "fail": 1,
+      "pass_rate": 90,
+      "avg_overall_score": 8.9,
+      "dimension_averages": {
+        "field_compliance": 8.4,
+        "intent_grounding": 9.9,
+        "routing_accuracy": 9.3,
+        "naturalness": 9.7,
+        "latency_fitness": 8.3
+      },
+      "low_score_cases": []
+    },
+    "compound": {
+      "total": 4,
+      "pass": 3,
+      "fail": 1,
+      "pass_rate": 75,
+      "avg_overall_score": 9.5,
+      "dimension_averages": {
+        "decomposition_correctness": 7.5,
+        "tool_coverage": 10,
+        "subquery_purity": 10,
+        "entity_preservation": 10,
+        "output_completeness": 10
+      },
+      "low_score_cases": []
+    }
+  },
+  "track_weakness": {
+    "main_fast": {
+      "dim": "latency_fitness",
+      "avg": 8.3
+    },
+    "compound": {
+      "dim": "decomposition_correctness",
+      "avg": 7.5
+    }
+  },
+  "by_case": {
+    "AGC-001": {
+      "case_id": "AGC-001",
+      "question": "怎么打亚索？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9
+    },
+    "AGC-005": {
+      "case_id": "AGC-005",
+      "question": "打野视野应该重点插在哪里才能防止被反蹲，给我个视频指导？",
+      "expected_intent": "video",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 6
+    },
+    "AGC-009": {
+      "case_id": "AGC-009",
+      "question": "只玩一个英雄上分真的比玩一堆英雄有效吗？",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-010": {
+      "case_id": "AGC-010",
+      "question": "连跪5把是不是我太菜了，感觉这游戏越来越没意思",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-013": {
+      "case_id": "AGC-013",
+      "question": "亚索打盲僧怎么对线？另外给我个连招视频看看",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9
+    },
+    "AGC-015": {
+      "case_id": "AGC-015",
+      "question": "刚刚那把我中单被打爆，你帮我分析一下怎么翻盘，再给个相关的视频教学，顺便夸夸我让我心情好点",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 8,
+          "verdict": "fail",
+          "audit_count": 1,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 8.5
+    },
+    "AGC-039": {
+      "case_id": "AGC-039",
+      "question": "是不是只有花钱买代练才能上分",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-042": {
+      "case_id": "AGC-042",
+      "question": "瑞兹怎么打狐狸？给个连招视频",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9.5
+    },
+    "AGC-043": {
+      "case_id": "AGC-043",
+      "question": "心态崩了，刚才那把劫把我虐了，怎么对线劫？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9
+    },
+    "AGC-044": {
+      "case_id": "AGC-044",
+      "question": "打野前期怎么入侵？再给个高端局入侵集锦看看",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9.5
+    }
+  },
+  "audit_summary": [
+    {
+      "flag": "task_plan 长度=N 与 expected=N 不符（口径=main）",
+      "count": 1
+    }
+  ],
+  "routing_accuracy": {
+    "total_routed": 10,
+    "matched": 9,
+    "mismatched": 1,
+    "rate": 90,
+    "mismatches": [
+      {
+        "case_id": "AGC-005",
+        "expected": "video",
+        "actual": "strategy",
+        "question": "打野视野应该重点插在哪里才能防止被反蹲，给我个视频指导？"
+      }
+    ]
+  },
+  "compound_decomposition_accuracy": {
+    "total_compound_cases": 7,
+    "compound_judged": 4,
+    "correctly_decomposed": 3,
+    "rate": 75,
+    "taskplanner_capable": 3,
+    "taskplanner_capable_rate": 75,
+    "route_short_circuit_loss": 0,
+    "misdecomposed": [
+      {
+        "case_id": "AGC-015",
+        "overall_score": 8,
+        "audit_flags": [
+          "task_plan 长度=2 与 expected=3 不符（口径=main）"
+        ],
+        "reason": "任务拆解数量为2，未达到预期的3，未覆盖用户的情绪需求；但工具覆盖符合预期、子查询无串味、核心实体均保留、子任务输出齐全"
+      }
+    ]
+  }
+}

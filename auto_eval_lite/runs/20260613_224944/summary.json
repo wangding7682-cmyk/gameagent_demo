@@ -1,0 +1,650 @@
+{
+  "total_cases": 21,
+  "judged_rows": 56,
+  "grand_avg_overall": 9.57,
+  "parse_error_count": 0,
+  "by_track": {
+    "main_fast": {
+      "total": 21,
+      "pass": 21,
+      "fail": 0,
+      "pass_rate": 100,
+      "avg_overall_score": 9.99,
+      "dimension_averages": {
+        "field_compliance": 10,
+        "intent_grounding": 10,
+        "routing_accuracy": 10,
+        "naturalness": 9.86,
+        "latency_fitness": 10
+      },
+      "low_score_cases": []
+    },
+    "video": {
+      "total": 12,
+      "pass": 11,
+      "fail": 1,
+      "pass_rate": 91.7,
+      "avg_overall_score": 8.88,
+      "dimension_averages": {
+        "query_rewrite_quality": 8.83,
+        "platform_adaptation": 9,
+        "semantic_relevance": 8,
+        "result_completeness": 9.25,
+        "routing_correctness": 10
+      },
+      "low_score_cases": []
+    },
+    "compound": {
+      "total": 7,
+      "pass": 7,
+      "fail": 0,
+      "pass_rate": 100,
+      "avg_overall_score": 9.71,
+      "dimension_averages": {
+        "decomposition_correctness": 10,
+        "tool_coverage": 10,
+        "subquery_purity": 9.57,
+        "entity_preservation": 10,
+        "output_completeness": 10
+      },
+      "low_score_cases": []
+    },
+    "strategy": {
+      "total": 9,
+      "pass": 9,
+      "fail": 0,
+      "pass_rate": 100,
+      "avg_overall_score": 8.33,
+      "dimension_averages": {
+        "tactical_correctness": 6.44,
+        "quantification": 9.33,
+        "avoid_pitfalls": 8.56,
+        "conclusion_first": 8.33,
+        "voice_friendliness": 9.67
+      },
+      "low_score_cases": []
+    },
+    "silence": {
+      "total": 7,
+      "pass": 7,
+      "fail": 0,
+      "pass_rate": 100,
+      "avg_overall_score": 10,
+      "dimension_averages": {
+        "restraint_score": 10,
+        "context_appropriateness": 10,
+        "length_compliance": 10,
+        "no_hallucination": 10,
+        "tone_softness": 10
+      },
+      "low_score_cases": []
+    }
+  },
+  "track_weakness": {
+    "main_fast": {
+      "dim": "naturalness",
+      "avg": 9.86
+    },
+    "video": {
+      "dim": "semantic_relevance",
+      "avg": 8
+    },
+    "compound": {
+      "dim": "subquery_purity",
+      "avg": 9.57
+    },
+    "strategy": {
+      "dim": "tactical_correctness",
+      "avg": 6.44
+    },
+    "silence": {
+      "dim": "restraint_score",
+      "avg": 10
+    }
+  },
+  "by_case": {
+    "AGC-005": {
+      "case_id": "AGC-005",
+      "question": "打野视野应该重点插在哪里才能防止被反蹲，给我个视频指导？",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-013": {
+      "case_id": "AGC-013",
+      "question": "亚索打盲僧怎么对线？另外给我个连招视频看看",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9
+    },
+    "AGC-034": {
+      "case_id": "AGC-034",
+      "question": "ADC团战站位高光集锦",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 8.6,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9.3
+    },
+    "AGC-044": {
+      "case_id": "AGC-044",
+      "question": "打野前期怎么入侵？再给个高端局入侵集锦看看",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 6,
+          "verdict": "fail",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 8.5
+    },
+    "AGC-045": {
+      "case_id": "AGC-045",
+      "question": "我中单被劫一直针对，烦死了，给我讲下怎么打劫，再来个反杀视频鼓励一下",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9.5
+    },
+    "AGC-046": {
+      "case_id": "AGC-046",
+      "question": "辅助怎么帮ADC上分？另外推荐个辅助教学的视频",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 7,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 8.5
+    },
+    "AGC-048": {
+      "case_id": "AGC-048",
+      "question": "我中单总是推完线不知道干嘛，怎么带节奏？再给我看个中单游走高光集锦",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9.25
+    },
+    "AGC-051": {
+      "case_id": "AGC-051",
+      "question": "啊啊啊",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "silence": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-052": {
+      "case_id": "AGC-052",
+      "question": "我靠差点死了",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "silence": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-053": {
+      "case_id": "AGC-053",
+      "question": "嗯？",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "silence": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-054": {
+      "case_id": "AGC-054",
+      "question": "哎",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "silence": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-055": {
+      "case_id": "AGC-055",
+      "question": "辅助团战站位教学",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-056": {
+      "case_id": "AGC-056",
+      "question": "打野入侵路线集锦",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9.5
+    },
+    "AGC-057": {
+      "case_id": "AGC-057",
+      "question": "上单抗压教学视频",
+      "expected_intent": "video",
+      "actual_intent": "video",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-058": {
+      "case_id": "AGC-058",
+      "question": "怎么带节奏？再给我个打野gank集锦",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9.5
+    },
+    "AGC-059": {
+      "case_id": "AGC-059",
+      "question": "中单怎么对线？另外给我个教学视频",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "compound": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "video": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9.5
+    },
+    "AGC-060": {
+      "case_id": "AGC-060",
+      "question": "嗯...",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "silence": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-061": {
+      "case_id": "AGC-061",
+      "question": "啊",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "silence": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-062": {
+      "case_id": "AGC-062",
+      "question": "...",
+      "expected_intent": "smalltalk",
+      "actual_intent": "smalltalk",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "silence": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 10
+    },
+    "AGC-063": {
+      "case_id": "AGC-063",
+      "question": "打野前期怎么刷野最快？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 10,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 9,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 9.5
+    },
+    "AGC-064": {
+      "case_id": "AGC-064",
+      "question": "辅助什么时候该游走？",
+      "expected_intent": "strategy",
+      "actual_intent": "strategy",
+      "tracks": {
+        "main_fast": {
+          "overall_score": 9.8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        },
+        "strategy": {
+          "overall_score": 8,
+          "verdict": "pass",
+          "audit_count": 0,
+          "parse_error": false
+        }
+      },
+      "avg_overall": 8.9
+    }
+  },
+  "audit_summary": [],
+  "routing_accuracy": {
+    "total_routed": 21,
+    "matched": 21,
+    "mismatched": 0,
+    "rate": 100,
+    "mismatches": []
+  },
+  "compound_decomposition_accuracy": {
+    "total_compound_cases": 7,
+    "compound_judged": 7,
+    "correctly_decomposed": 7,
+    "rate": 100,
+    "taskplanner_capable": 7,
+    "taskplanner_capable_rate": 100,
+    "route_short_circuit_loss": 0,
+    "misdecomposed": []
+  }
+}

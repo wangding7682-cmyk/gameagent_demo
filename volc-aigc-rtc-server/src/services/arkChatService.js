@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import { safeFetchRaw } from '../utils/http.js';
 
 function assertArkChatConfig() {
   const missing = [];
@@ -50,7 +51,7 @@ export function extractJsonObject(text = '') {
   return JSON.parse(candidate);
 }
 
-export async function callArkChat({ systemPrompt, userPrompt, temperature = 0.2, maxTokens = 800 } = {}) {
+export async function callArkChat({ systemPrompt, userPrompt, temperature = 0.2, maxTokens = 800, timeoutMs = 60000, model = null } = {}) {
   assertArkChatConfig();
   const cleanSystemPrompt = String(systemPrompt || '').trim();
   const cleanUserPrompt = String(userPrompt || '').trim();
@@ -58,45 +59,59 @@ export async function callArkChat({ systemPrompt, userPrompt, temperature = 0.2,
     throw new Error('Ark Chat 需要 userPrompt');
   }
 
-  const response = await fetch(`https://${config.ark.host}${normalizeChatPath(config.ark.chatPath)}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.ark.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: config.ark.chatModel,
-      messages: [
-        cleanSystemPrompt ? { role: 'system', content: cleanSystemPrompt } : null,
-        { role: 'user', content: cleanUserPrompt },
-      ].filter(Boolean),
-      temperature,
-      max_tokens: maxTokens,
-      stream: false,
-    }),
-  });
-
-  const rawText = await response.text();
-  let data = null;
+  const t0 = Date.now();
   try {
-    data = rawText ? JSON.parse(rawText) : {};
-  } catch (_) {
-    throw new Error(`Ark Chat 返回非 JSON 响应: ${rawText.slice(0, 200)}`);
-  }
+    const response = await safeFetchRaw(`https://${config.ark.host}${normalizeChatPath(config.ark.chatPath)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.ark.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: model || config.ark.chatModel,
+        messages: [
+          cleanSystemPrompt ? { role: 'system', content: cleanSystemPrompt } : null,
+          { role: 'user', content: cleanUserPrompt },
+        ].filter(Boolean),
+        temperature,
+        max_tokens: maxTokens,
+        stream: false,
+      }),
+      timeoutMs,
+    });
 
-  if (!response.ok) {
-    throw new Error(`Ark Chat API 返回 HTTP ${response.status}: ${rawText.slice(0, 300)}`);
-  }
+    const ttfb = Date.now() - t0; // Time To First Byte（含网络+排队+首token）
+    const rawText = await response.text();
+    response._clearTimeout && response._clearTimeout();
+    const tRead = Date.now() - t0 - ttfb; // body 读取时间
+    let data = null;
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (_) {
+      throw new Error(`Ark Chat 返回非 JSON 响应: ${rawText.slice(0, 200)}`);
+    }
 
-  const content = extractMessageContent(data).trim();
-  if (!content) {
-    throw new Error(`Ark Chat 响应缺少内容: ${JSON.stringify(data).slice(0, 200)}`);
-  }
+    if (!response.ok) {
+      throw new Error(`Ark Chat API 返回 HTTP ${response.status}: ${rawText.slice(0, 300)}`);
+    }
 
-  return {
-    content,
-    raw: data,
-  };
+    const content = extractMessageContent(data).trim();
+    if (!content) {
+      throw new Error(`Ark Chat 响应缺少内容: ${JSON.stringify(data).slice(0, 200)}`);
+    }
+
+    const total = Date.now() - t0;
+    const usage = data?.usage || {};
+    console.log(`[ArkChat][timing] ttfb=${ttfb}ms body=${tRead}ms total=${total}ms prompt=${usage.prompt_tokens || '?'} completion=${usage.completion_tokens || '?'} model=${config.ark.chatModel}`);
+
+    return {
+      content,
+      raw: data,
+      timing: { ttfb, bodyRead: tRead, total },
+    };
+  } catch (err) {
+    throw err;
+  }
 }
 
 export async function callArkChatStream({
@@ -105,6 +120,7 @@ export async function callArkChatStream({
   temperature = 0.2,
   maxTokens = 800,
   onDelta = () => {},
+  timeoutMs = 30000,
 } = {}) {
   assertArkChatConfig();
   const cleanSystemPrompt = String(systemPrompt || '').trim();
@@ -113,25 +129,32 @@ export async function callArkChatStream({
     throw new Error('Ark Chat Stream 需要 userPrompt');
   }
 
-  const response = await fetch(`https://${config.ark.host}${normalizeChatPath(config.ark.chatPath)}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.ark.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: config.ark.chatModel,
-      messages: [
-        cleanSystemPrompt ? { role: 'system', content: cleanSystemPrompt } : null,
-        { role: 'user', content: cleanUserPrompt },
-      ].filter(Boolean),
-      temperature,
-      max_tokens: maxTokens,
-      stream: true,
-    }),
-  });
+  let response;
+  try {
+    response = await safeFetchRaw(`https://${config.ark.host}${normalizeChatPath(config.ark.chatPath)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.ark.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: config.ark.chatModel,
+        messages: [
+          cleanSystemPrompt ? { role: 'system', content: cleanSystemPrompt } : null,
+          { role: 'user', content: cleanUserPrompt },
+        ].filter(Boolean),
+        temperature,
+        max_tokens: maxTokens,
+        stream: true,
+      }),
+      timeoutMs,
+    });
+  } catch (err) {
+    throw err;
+  }
 
   if (!response.ok || !response.body) {
+    response._clearTimeout && response._clearTimeout();
     const rawText = await response.text().catch(() => '');
     throw new Error(`Ark Chat Stream API 返回 HTTP ${response.status}: ${rawText.slice(0, 300)}`);
   }
@@ -141,51 +164,58 @@ export async function callArkChatStream({
   let buffer = '';
   let fullContent = '';
 
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const events = buffer.split('\n\n');
-    buffer = events.pop() || '';
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      response._resetTimeout && response._resetTimeout(); // 每次收到新数据块时重置空闲超时时间
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split('\n\n');
+      buffer = events.pop() || '';
 
-    for (const evt of events) {
-      const lines = evt.split(/\r?\n/).filter((line) => line.startsWith('data:'));
+      for (const evt of events) {
+        const lines = evt.split(/\r?\n/).filter((line) => line.startsWith('data:'));
+        for (const line of lines) {
+          const dataText = line.slice(5).trim();
+          if (!dataText || dataText === '[DONE]') {
+            continue;
+          }
+          let data = null;
+          try {
+            data = JSON.parse(dataText);
+          } catch (_) {
+            continue;
+          }
+          const delta = extractDeltaContent(data);
+          if (delta) {
+            fullContent += delta;
+            await onDelta(delta, fullContent);
+          }
+        }
+      }
+    }
+
+    if (buffer.trim()) {
+      const lines = buffer.split(/\r?\n/).filter((line) => line.startsWith('data:'));
       for (const line of lines) {
         const dataText = line.slice(5).trim();
-        if (!dataText || dataText === '[DONE]') {
-          continue;
-        }
-        let data = null;
+        if (!dataText || dataText === '[DONE]') continue;
         try {
-          data = JSON.parse(dataText);
+          const data = JSON.parse(dataText);
+          const delta = extractDeltaContent(data);
+          if (delta) {
+            fullContent += delta;
+            await onDelta(delta, fullContent);
+          }
         } catch (_) {
-          continue;
-        }
-        const delta = extractDeltaContent(data);
-        if (delta) {
-          fullContent += delta;
-          await onDelta(delta, fullContent);
+          // Ignore incomplete trailing SSE payloads.
         }
       }
     }
-  }
-
-  if (buffer.trim()) {
-    const lines = buffer.split(/\r?\n/).filter((line) => line.startsWith('data:'));
-    for (const line of lines) {
-      const dataText = line.slice(5).trim();
-      if (!dataText || dataText === '[DONE]') continue;
-      try {
-        const data = JSON.parse(dataText);
-        const delta = extractDeltaContent(data);
-        if (delta) {
-          fullContent += delta;
-          await onDelta(delta, fullContent);
-        }
-      } catch (_) {
-        // Ignore incomplete trailing SSE payloads.
-      }
-    }
+  } catch (err) {
+    throw err;
+  } finally {
+    response._clearTimeout && response._clearTimeout();
   }
 
   const content = fullContent.trim();

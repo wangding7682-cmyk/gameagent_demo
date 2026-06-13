@@ -1,0 +1,83 @@
+{
+  "total": 12,
+  "pass": 6,
+  "fail": 6,
+  "pass_rate": 50,
+  "avg_overall_score": 4.08,
+  "dimension_averages": {
+    "tactical_quality": 3.67,
+    "structural_compliance": 3.67,
+    "tone_authenticity": 4.25,
+    "emotional_boundary": 4.67,
+    "conciseness": 4.17
+  },
+  "low_score_cases": [
+    {
+      "case_id": "AGC-002",
+      "overall_score": 1,
+      "verdict": "fail",
+      "reason": "实际路由意图为smalltalk，与期望的strategy意图不符，路由错误，未提供任何防gank的战术建议，无法解决用户需求。"
+    },
+    {
+      "case_id": "AGC-008",
+      "overall_score": 0,
+      "verdict": "fail",
+      "reason": "将战术类问题错误路由至smalltalk意图，未提供任何有效战术分析与建议，无法解决用户核心痛点"
+    },
+    {
+      "case_id": "AGC-009",
+      "overall_score": 0,
+      "verdict": "fail",
+      "reason": "候选回答未输出任何有效内容，既未完成情绪承接，也未提供轻量实用建议，完全不符合要求。"
+    },
+    {
+      "case_id": "AGC-010",
+      "overall_score": 0,
+      "verdict": "fail",
+      "reason": "候选回答未输出任何有效回复内容，既未承接用户的负面情绪，也未提供轻量建议，完全无法满足smalltalk类问题的需求。"
+    },
+    {
+      "case_id": "AGC-011",
+      "overall_score": 0,
+      "verdict": "fail",
+      "reason": "候选回答仅标注路由意图，未提供任何符合要求的俏皮倾向性推荐及相关内容，完全未响应用户需求。"
+    },
+    {
+      "case_id": "AGC-012",
+      "overall_score": 2,
+      "verdict": "fail",
+      "reason": "实际路由意图为strategy，与期望的smalltalk意图不符，未承接用户自我怀疑的情绪，仅输出纯战术分析，偏离核心需求。"
+    }
+  ],
+  "risk_tag_summary": {
+    "路由错误": 3,
+    "无有效响应": 1,
+    "无有效回复内容": 1
+  },
+  "routing_accuracy": {
+    "total_routed": 12,
+    "matched": 9,
+    "mismatched": 3,
+    "rate": 75,
+    "mismatches": [
+      {
+        "case_id": "AGC-002",
+        "expected": "strategy",
+        "actual": "smalltalk",
+        "question": "怎么防 gank？"
+      },
+      {
+        "case_id": "AGC-008",
+        "expected": "strategy",
+        "actual": "smalltalk",
+        "question": "经济领先 3k 还是打不过团，说明问题出在哪？"
+      },
+      {
+        "case_id": "AGC-012",
+        "expected": "smalltalk",
+        "actual": "strategy",
+        "question": "这套出装真的好吗？我看别人都这么出但我用了总输"
+      }
+    ]
+  }
+}

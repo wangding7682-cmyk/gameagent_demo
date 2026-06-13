@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import { safeFetchText } from '../utils/http.js';
 
 const FALLBACK_VIDEOS = [
   {
@@ -97,7 +98,8 @@ function findFallbackVideo(query) {
   );
   if (specificMatches.length > 0) return specificMatches[0];
 
-  return exactMatches[0];
+  // 无精确匹配时返回 null，禁止返回不相关视频
+  return null;
 }
 
 function normalizeDouyinVideoUrl(rawUrl) {
@@ -256,15 +258,14 @@ function extractPlayableVideoUrl(html) {
 }
 
 async function fetchVideoMeta(videoUrl) {
-  const response = await fetch(videoUrl, {
+  const html = await safeFetchText(videoUrl, {
     headers: DEFAULT_HEADERS,
     redirect: 'follow',
+    timeoutMs: 15000,
   });
 
-  const html = await response.text();
-
   return {
-    finalUrl: response.url || videoUrl,
+    finalUrl: videoUrl,
     title:
       extractMetaContent(html, 'og:title') ||
       extractMetaContent(html, 'twitter:title') ||
@@ -289,16 +290,12 @@ export async function searchDouyinVideo(body = {}) {
   const keyword = buildSearchKeyword(query);
   const searchPath =
     `${config.videoSearch.path}?q=${encodeURIComponent(keyword)}&setlang=zh-CN`;
-  const response = await fetch(`https://${config.videoSearch.host}${searchPath}`, {
+  const html = await safeFetchText(`https://${config.videoSearch.host}${searchPath}`, {
     headers: DEFAULT_HEADERS,
     redirect: 'follow',
+    timeoutMs: 15000,
   });
 
-  if (!response.ok) {
-    throw new Error(`视频检索接口返回 HTTP ${response.status}`);
-  }
-
-  const html = await response.text();
   const candidates = extractCandidateUrls(html);
   if (candidates.length === 0) {
     const fallbackVideo = allowFallback ? findFallbackVideo(query) : null;
