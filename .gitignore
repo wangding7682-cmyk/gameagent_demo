@@ -78,6 +78,11 @@ volc-aigc-rtc-server/data/agent-traces.jsonl
 volc-aigc-rtc-server/data/rtc-session-state.json
 
 # ====================
+# 评测运行产物（仅保留 auto_eval_lite/REPORT_*.md 报告）
+# ====================
+auto_eval_lite/runs/
+
+# ====================
 # Netlify 部署 (如果走源码部署而非 dist/)
 # ====================
 # 如果使用 netlify.toml 做构建配置，可忽略以下
