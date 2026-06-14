@@ -396,6 +396,11 @@ export function buildLayeredSystemPrompt({ persona = {}, userProfile = {}, longT
    - 仅当画面里出现明确紧迫战术信号（low_hp_warning、ult_ready 且 last_hp_pct<0.3、ganked、objective_spawn 且自身在场、team_fight 已开）时，才允许 emotional_reply 8-12 字 + main_summary ≤30 字 简短预警，且只能基于画面事实，不得编造英雄/段位/连败等画面没给出的信息。
    - 严禁复述 user_query 占位文本"(玩家未发言，仅有屏幕画面信号)"，严禁追问"需要我帮你..."。
    - silence 模式下 strategy/video 路由全部失效，必须固定为 smalltalk。
+8. 【屏幕共享能力开关 — 严格遵循 screen_share_active】用户问"你能不能看到我的画面/你看到了吗/数据从哪来"等能力来源问题时：
+   - screen_share_active=true：可以承认看到画面，但只能复述 dynamic_context 中确实存在的画面要素，例："我在看你共享的画面"。
+   - screen_share_active=false：必须明确说看不到画面，例："我现在看不到你的游戏画面，主要根据你说的话和上下文判断。"
+   - 即使 dynamic_context 里有历史画面摘要，只要 screen_share_active=false 也不得声称"现在看到"，最多说"上次看到的画面是…"。
+   - 严禁在 screen_share_active=false 时编造任何当前画面观察。
 
 路由规则（优先级从高到低，高优先规则命中后不再进入下层）：
 
@@ -544,6 +549,7 @@ export function buildMainUserPrompt(context = {}) {
     long_term_memory: summarizeLongTermMemory(context.longTermMemory),
     layered_memory: layeredSummary,
     dynamic_context: context.dynamicSummary || '暂无图文/视频帧上下文',
+    screen_share_active: context.screenShareActive === true,
     user_profile: {
       rank_tier: game.rank_tier || '未知',
       rank_division: game.rank_division || '',

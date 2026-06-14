@@ -412,6 +412,9 @@ export async function buildAgentContext(body = {}, turnId = '') {
     sessionGoal: sessionGoalRaw,
     sessionGoalSummary,
     screenObservation,
+    // screenShareActive：本回合后端是否真的拿到了"新鲜"的屏幕画面摘要（10s 内）。
+    // 用于让 main_fast 在回答能力来源类问题时区分"用户开了开关 + 数据真的来了"和"看不到画面"。
+    screenShareActive: !!screenObservation?.isFresh,
     shortMemory: {
       recent_turns: sessionState.recent_turns || [],
       summary: recentSummary,
