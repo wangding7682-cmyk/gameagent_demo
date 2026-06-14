@@ -6,6 +6,9 @@
     "dev": "node --watch ./volc-aigc-rtc-server/src/server.js"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "20.x"
+  },
+  "dependencies": {
+    "undici": "^8.4.1"
   }
 }
