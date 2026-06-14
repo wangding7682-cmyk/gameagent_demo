@@ -1312,15 +1312,10 @@ async function handleKnowledgeHealth(url) {
     apiStyle: config.knowledge.apiStyle,
     host: config.knowledge.host,
     endpointPath: config.knowledge.endpointPath,
-    region: config.knowledge.region,
-    service: config.knowledge.service,
-    accountId: maskSecret(config.knowledge.accountId),
     resourceId: maskSecret(config.knowledge.resourceId),
     collectionName: config.knowledge.collectionName || '',
     serviceResourceId: config.knowledge.serviceResourceId || '',
     apiKeyConfigured: Boolean(config.knowledge.apiKey),
-    accessKeyConfigured: Boolean(config.knowledge.accessKeyId),
-    secretKeyConfigured: Boolean(config.knowledge.secretAccessKey),
   };
 
   if (!probe) {

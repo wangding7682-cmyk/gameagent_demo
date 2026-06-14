@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿/* 全局样式 */
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿/* 全局样式 */
 :root {
     --primary-color: #4f46e5;
     --primary-strong: #4338ca;
@@ -56,10 +56,10 @@ input {
 }
 
 .topbar-guide {
-    max-width: 680px;
     margin: 10px 0 0;
     color: #64748b;
     line-height: 1.7;
+    white-space: nowrap;
 }
 
 .topbar-guide-secondary {

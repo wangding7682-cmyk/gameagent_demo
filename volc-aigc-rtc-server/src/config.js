@@ -95,18 +95,9 @@ export const config = {
     apiStyle: process.env.VOLC_KNOWLEDGE_API_STYLE || 'search_knowledge',
     host:
       process.env.VOLC_KNOWLEDGE_HOST || 'api-knowledgebase.mlp.cn-beijing.volces.com',
-    region: process.env.VOLC_KNOWLEDGE_REGION || 'cn-north-1',
-    service: process.env.VOLC_KNOWLEDGE_SERVICE || 'air',
     endpointPath:
       process.env.VOLC_KNOWLEDGE_SEARCH_PATH ||
       '/api/knowledge/collection/search_knowledge',
-    accessKeyId:
-      process.env.VOLC_KNOWLEDGE_ACCESS_KEY || requiredEnv('VOLCENGINE_ACCESS_KEY'),
-    secretAccessKey:
-      process.env.VOLC_KNOWLEDGE_SECRET_KEY || requiredEnv('VOLCENGINE_SECRET_KEY'),
-    sessionToken:
-      process.env.VOLC_KNOWLEDGE_SESSION_TOKEN || process.env.VOLCENGINE_SESSION_TOKEN || '',
-    accountId: process.env.VOLC_KNOWLEDGE_ACCOUNT_ID || '',
     project: process.env.VOLC_KNOWLEDGE_PROJECT || 'default',
     resourceId: process.env.VOLC_KNOWLEDGE_RESOURCE_ID || '',
     collectionName: process.env.VOLC_KNOWLEDGE_NAME || '',
@@ -146,7 +137,6 @@ export const config = {
     path: process.env.VOLC_TTS_PATH || '/api/v3/tts/unidirectional',
     appId: process.env.VOLC_TTS_APP_ID || '',
     accessToken: process.env.VOLC_TTS_ACCESS_TOKEN || '',
-    secretKey: process.env.VOLC_TTS_SECRET_KEY || '',
     resourceId: process.env.VOLC_TTS_RESOURCE_ID || 'seed-tts-2.0',
     speaker: process.env.VOLC_TTS_SPEAKER || 'zh_female_qingxinnvsheng_uranus_bigtts',
     sampleRate: Number(process.env.VOLC_TTS_SAMPLE_RATE || 24000),
@@ -164,7 +154,6 @@ export const config = {
     apiKey: process.env.VIKING_MEMORY_API_KEY || '',
     resourceId: process.env.VIKING_MEMORY_RESOURCE_ID || '',
     collectionName: process.env.VIKING_MEMORY_COLLECTION_NAME || '',
-    apiServiceName: process.env.VIKING_MEMORY_API_SERVICE_NAME || '',
     host: process.env.VIKING_MEMORY_HOST || 'api-knowledgebase.mlp.cn-beijing.volces.com',
     eventType: process.env.VIKING_MEMORY_EVENT_TYPE || 'event_v1',
     profileType: process.env.VIKING_MEMORY_PROFILE_TYPE || 'profile_v1',
@@ -248,9 +237,7 @@ export function assertKnowledgeConfig() {
       missing.push('VOLC_KNOWLEDGE_SERVICE_RESOURCE_ID');
     }
   } else {
-    if (!config.knowledge.accessKeyId) missing.push('VOLC_KNOWLEDGE_ACCESS_KEY');
-    if (!config.knowledge.secretAccessKey) missing.push('VOLC_KNOWLEDGE_SECRET_KEY');
-    if (!config.knowledge.region) missing.push('VOLC_KNOWLEDGE_REGION');
+    if (!config.knowledge.apiKey) missing.push('VOLC_KNOWLEDGE_API_KEY');
     if (!config.knowledge.resourceId && !config.knowledge.collectionName) {
       missing.push('VOLC_KNOWLEDGE_RESOURCE_ID 或 VOLC_KNOWLEDGE_NAME');
     }
