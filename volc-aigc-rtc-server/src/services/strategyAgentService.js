@@ -212,6 +212,15 @@ function buildGenericTemplateStrategy(context, mainOutput, ragStrength, weakHitB
   };
 }
 
+function buildRecentDialogueSnippet(recentTurns = [], maxRounds = 5) {
+  const turns = (recentTurns || []).slice(-maxRounds);
+  return turns.map((t) => {
+    const role = t.role === 'bot' || t.role === 'assistant' ? 'bot' : 'user';
+    const text = String(t.text || t.content || '').trim();
+    return `${role}: ${text}`;
+  }).join('\n');
+}
+
 function buildFallbackImagePrompt(title, details, safeSummary) {
   const detailText = details.slice(0, 4).join(' / ');
   return sanitizeKnowledgeCardImagePrompt(
@@ -469,6 +478,7 @@ image_prompt_text 必须严格满足：
     rag_error: rag.error || null,
     recent_rag_context: context.historicalRagContext || '',
     short_memory: context.shortMemory?.summary || '',
+    recent_dialogue_snippet: buildRecentDialogueSnippet(context.shortMemory?.recent_turns),
     dynamic_context: context.dynamicSummary || '',
     // 泛话题（阵容/团战/配合等）时清除 hero 上下文，防止 hero 特化标题
     sticky_hero: effectiveStickyHero,

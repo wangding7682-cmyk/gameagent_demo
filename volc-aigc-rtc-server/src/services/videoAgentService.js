@@ -182,6 +182,15 @@ export function buildPlatformVideoQueries({
   };
 }
 
+function buildRecentDialogueSnippet(recentTurns = [], maxRounds = 5) {
+  const turns = (recentTurns || []).slice(-maxRounds);
+  return turns.map((t) => {
+    const role = t.role === 'bot' || t.role === 'assistant' ? 'bot' : 'user';
+    const text = String(t.text || t.content || '').trim();
+    return `${role}: ${text}`;
+  }).join('\n');
+}
+
 export async function runVideoAgent(context, mainOutput) {
   const systemPrompt = `你是 Video_Agent 视频子脑。
 你要把用户意图改写成适合视频搜索的高价值搜索词，并分别输出适合 B站、抖音、通用搜索的版本。
@@ -222,6 +231,7 @@ export async function runVideoAgent(context, mainOutput) {
     main_summary: mainOutput.main_summary,
     rag_summary: context.rag?.summary || '',
     dynamic_context: context.dynamicSummary || '',
+    recent_dialogue_snippet: buildRecentDialogueSnippet(context.shortMemory?.recent_turns),
     sticky_hero: context.stickyHero || null,
     screen_observation: screenObs ? {
       summary: screenObs.summary,
