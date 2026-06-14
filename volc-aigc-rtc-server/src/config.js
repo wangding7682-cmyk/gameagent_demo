@@ -109,7 +109,7 @@ export const config = {
     host: process.env.ARK_HOST || 'ark.cn-beijing.volces.com',
     imageGenerationPath:
       process.env.ARK_IMAGE_GENERATION_PATH || '/api/v3/images/generations',
-    chatPath: process.env.ARK_CHAT_PATH || '/api/v3/chat completions',
+    chatPath: process.env.ARK_CHAT_PATH || '/api/v3/chat/completions',
     apiKey: process.env.ARK_API_KEY || '',
     imageModel: process.env.ARK_IMAGE_MODEL || 'ep-20260505234424-d7khd',
     chatModel: process.env.ARK_CHAT_MODEL || 'ep-20260430103756-7wgz4',
