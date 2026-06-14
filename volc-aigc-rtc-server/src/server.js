@@ -496,10 +496,35 @@ function resolveRetrievedKnowledge(body, session = null) {
   return String(candidate || '').trim();
 }
 
+function buildSystemCapabilityManifest() {
+  return {
+    can_do: [
+      '理解用户语音转写和文本输入',
+      '在用户开启屏幕共享时，基于可见画面摘要做有限局势判断',
+      '结合当前会话历史、短期上下文和用户画像延续话题',
+      '检索知识库/RAG，生成战术建议、知识卡片和视频搜索方向',
+      '通过后台 Strategy/Video 子任务异步准备卡片或视频链接',
+    ],
+    data_sources: [
+      '用户语音转写文本',
+      '用户手动输入文本',
+      '屏幕共享画面摘要和近期画面事件',
+      'RTC Context Projection 会话投影',
+      '短期对话历史和用户画像',
+      '知识库/RAG 检索结果',
+      '后台子任务返回的卡片或视频检索结果',
+    ],
+  };
+}
+
 function buildRtcDynamicContextMessage({ profilePrompt, retrievedKnowledge, dynamicGameState, rtcProjectionMessage = '' }) {
   return [
     '# Dynamic Context (由系统状态机动态注入)',
     rtcProjectionMessage || '',
+    '',
+    '<system_capability_manifest>',
+    JSON.stringify(buildSystemCapabilityManifest(), null, 2),
+    '</system_capability_manifest>',
     '',
     '<memory_profile>',
     profilePrompt || '暂无长期画像',
@@ -712,6 +737,19 @@ async function applyRtcMemoryContext(startVoiceChatConfig, body, agentConfig, tu
     '- 如果用户只是闲聊、问情绪、问感受、问队友是谁、问"刚才发生了什么"、说自己的事，**严禁承诺生成卡片/查找视频/整理战术**，只能用闲聊语气直接给一个简短回应或反问。',
     '- 含糊的话术（如"我去帮你看看"、"我帮你整理下"）也不能用在闲聊上，因为后台不会真的做。',
     '- 严禁编造游戏内事件、英雄、对位、操作等用户没说过的具体事实（"对面打野是XXX""你被XXX绕后"）。',
+    '',
+    '【能力边界与真实来源规则 — 最高优先级】',
+    '- 能力事实归代码，表达归 LLM；你的能力范围只能来自 <system_capability_manifest>。',
+    '- 当用户问“你怎么知道/你怎么感知/数据从哪来/是不是接了游戏接口/你能不能看到游戏”等能力来源问题时，必须基于 <system_capability_manifest> 保守解释。',
+    '- 可以说：我主要根据你说的话、屏幕共享画面摘要、会话上下文和知识库来判断。',
+    '- 如果没有明确的屏幕共享或画面摘要，不要说“我看到了局势”，只能说“我主要根据你的描述和上下文判断”。',
+    '- 禁止虚构未在 <system_capability_manifest> 中出现的能力来源，例如游戏实时接口、官方对局接口、客户端内部数据、内存读取、隐藏后台数据。',
+    '- 涉及系统能力时宁可保守，不要猜，不要为了显得专业而补不存在的数据来源。',
+    '- RTC 短句版只适用于系统能力边界类问题，例如：能力来源、数据来源、是否接入游戏接口、是否能看到游戏画面、如何感知局势。',
+    '- 普通 strategy/video/smalltalk 问题不要套用下面两句 few-shot，仍按对应任务播报规则回答。',
+    '- 当且仅当用户询问系统能力边界类问题时，优先用一句话回答，避免展开长解释。',
+    '- Few-shot（有屏幕共享或画面摘要）：我不是接游戏实时接口，主要看你共享的画面、你说的话和历史上下文来判断。',
+    '- Few-shot（没有屏幕共享）：现在我看不到游戏画面，主要根据你说的话和历史上下文判断。',
     '',
     '语气约束：',
     '- 助手名称：小G',
